@@ -49,11 +49,32 @@ namespace librapid {
 										   function.shape());
 
 			if constexpr (allowVectorisation) {
-				for (int64_t index = 0; index < vectorSize; index += packetWidth) {
+				// Optimize vectorized loop with prefetching and loop unrolling
+				constexpr int64_t prefetchDistance = 64; // bytes ahead to prefetch
+				constexpr int64_t unrollFactor = 4;     // unroll by 4 for better ILP
+				
+				const int64_t unrolledVectorSize = vectorSize - (vectorSize % (packetWidth * unrollFactor));
+				
+				// Main unrolled vectorized loop
+				for (int64_t index = 0; index < unrolledVectorSize; index += packetWidth * unrollFactor) {
+					// Prefetch future data for better cache performance
+					if (index + prefetchDistance < vectorSize) {
+						__builtin_prefetch(&lhs.storage().data()[index + prefetchDistance], 1, 3);
+					}
+					
+					// Unrolled loop iterations for better instruction-level parallelism
+					lhs.writePacket(index, function.packet(index));
+					lhs.writePacket(index + packetWidth, function.packet(index + packetWidth));
+					lhs.writePacket(index + packetWidth * 2, function.packet(index + packetWidth * 2));
+					lhs.writePacket(index + packetWidth * 3, function.packet(index + packetWidth * 3));
+				}
+				
+				// Handle remaining vectorized elements
+				for (int64_t index = unrolledVectorSize; index < vectorSize; index += packetWidth) {
 					lhs.writePacket(index, function.packet(index));
 				}
 
-				// Assign the remaining elements
+				// Assign the remaining scalar elements
 				for (int64_t index = vectorSize; index < size; ++index) {
 					lhs.write(index, function.scalar(index));
 				}
@@ -109,11 +130,31 @@ namespace librapid {
 										   function.shape());
 
 			if constexpr (allowVectorisation) {
-				for (int64_t index = 0; index < vectorSize; index += packetWidth) {
-					lhs.writePacket(index, function.packet(index));
+				// Optimized loop for fixed-size storage with compile-time unrolling
+				if constexpr (elements >= 32) { // Only unroll for reasonably large arrays
+					constexpr int64_t unrollFactor = 4;
+					constexpr int64_t unrolledVectorSize = vectorSize - (vectorSize % (packetWidth * unrollFactor));
+					
+					// Main unrolled vectorized loop for fixed storage
+					for (int64_t index = 0; index < unrolledVectorSize; index += packetWidth * unrollFactor) {
+						lhs.writePacket(index, function.packet(index));
+						lhs.writePacket(index + packetWidth, function.packet(index + packetWidth));
+						lhs.writePacket(index + packetWidth * 2, function.packet(index + packetWidth * 2));
+						lhs.writePacket(index + packetWidth * 3, function.packet(index + packetWidth * 3));
+					}
+					
+					// Handle remaining vectorized elements
+					for (int64_t index = unrolledVectorSize; index < vectorSize; index += packetWidth) {
+						lhs.writePacket(index, function.packet(index));
+					}
+				} else {
+					// Simple vectorized loop for small fixed arrays
+					for (int64_t index = 0; index < vectorSize; index += packetWidth) {
+						lhs.writePacket(index, function.packet(index));
+					}
 				}
 
-				// Assign the remaining elements
+				// Assign the remaining scalar elements
 				for (int64_t index = vectorSize; index < elements; ++index) {
 					lhs.write(index, function.scalar(index));
 				}

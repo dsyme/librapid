@@ -54,13 +54,24 @@ namespace librapid {
 
 namespace librapid {
     size_t cacheLineSize() {
+        // Cache the result since cache line size doesn't change during runtime
+        static size_t cachedLineSize = 0;
+        if (cachedLineSize != 0) {
+            return cachedLineSize;
+        }
+        
         FILE *p = 0;
         p       = fopen("/sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size", "r");
         unsigned int lineSize = 64;
         if (p) {
-            fscanf(p, "%d", &lineSize);
+            if (fscanf(p, "%u", &lineSize) != 1) {
+                // If fscanf fails, keep default value of 64
+                lineSize = 64;
+            }
             fclose(p);
         }
+        
+        cachedLineSize = lineSize;
         return lineSize;
     }
 } // namespace librapid
