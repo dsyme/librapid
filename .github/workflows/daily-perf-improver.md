@@ -45,6 +45,8 @@ tools:
 steps:
   - name: Checkout repository
     uses: actions/checkout@v3
+  - name: Initialize submodules
+    run: git submodule update --init --recursive
   - name: Build and produce benchmarking report
     run: |
       # Install dependencies
@@ -57,7 +59,7 @@ steps:
       cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBRAPID_BUILD_TESTS=ON
       
       # Build the project
-      cmake --build . --parallel $(nproc)
+      make -j$(nproc)
       
       # Run tests with benchmarks enabled (without --skip-benchmarks flag)
       ctest --output-on-failure --parallel $(nproc)
