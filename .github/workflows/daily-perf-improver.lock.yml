@@ -2,7 +2,7 @@
 # To update this file, edit the corresponding .md file and run:
 #   gh aw compile
 #
-# Effective stop-time: 2025-08-23 22:27:13
+# Effective stop-time: 2025-08-23 23:03:54
 
 name: "Daily Performance Improvement"
 on:
@@ -89,7 +89,7 @@ jobs:
           WORKFLOW_NAME="Daily Performance Improvement"
           
           # Check stop-time limit
-          STOP_TIME="2025-08-23 22:27:13"
+          STOP_TIME="2025-08-23 23:03:54"
           echo "Checking stop-time limit: $STOP_TIME"
           
           # Convert stop time to epoch seconds
@@ -126,7 +126,8 @@ jobs:
           1. Analyze the state of performance:
              a. Check the most recent performance report in the repository. This may be in a file, an artifact, or a comment on a pull request or issue.
              b. Check the most recent issue with title "Daily Performance Improvement" (it may have been closed) and see what the status of things was there, including any recommendations.
-             
+             c. Check any existing open pull requests that are related to performance improvements especially any opened by you ("github-actions") in the past.
+          
           2. Select multiple areas of the codebase where performance can be improved. This could include:
              - Functions or methods that are slow
              - Algorithms that can be optimized
@@ -142,7 +143,7 @@ jobs:
           
              a. Create a new branch and make changes to improve performance. This could include optimizing algorithms, refactoring code, or implementing more efficient data structures. Ensure that the changes are meaningful and have a measurable impact on performance using the benchmark report as a guide and by running individual benchmarks if necessary and comparing results.
           
-             b. Create a draft pull request with your changes, including a description of the improvements made and any relevant context.
+             b. Create a draft pull request with your changes, including a description of the improvements, details of the benchmark runs that show improvement and by how much, made and any relevant context.
              
              c. Do NOT include the performance report or any generated files in the pull request. Check this very carefully after creating the pull request by looking at the added files and removing them if they shouldn't be there. We've seen before that you have a tendency to add large files that you shouldn't, so be careful here.
           
@@ -359,7 +360,7 @@ jobs:
             GITHUB_AW_OUTPUT: ${{ env.GITHUB_AW_OUTPUT }}
           mcp_config: /tmp/mcp-config/mcp-servers.json
           prompt_file: /tmp/aw-prompts/prompt.txt
-          timeout_minutes: 15
+          timeout_minutes: 30
         env:
           GITHUB_AW_OUTPUT: ${{ env.GITHUB_AW_OUTPUT }}
       - name: Capture Agentic Action logs

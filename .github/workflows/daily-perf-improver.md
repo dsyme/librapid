@@ -5,7 +5,7 @@ on:
         # Run daily at 2am UTC, all days except Saturday and Sunday
         - cron: "0 2 * * 1-5"
 
-timeout_minutes: 15
+timeout_minutes: 30
 
 stop-time: +48h # workflow will no longer trigger after 48 hours
 
@@ -89,7 +89,8 @@ Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for 
 1. Analyze the state of performance:
    a. Check the most recent performance report in the repository. This may be in a file, an artifact, or a comment on a pull request or issue.
    b. Check the most recent issue with title "Daily Performance Improvement" (it may have been closed) and see what the status of things was there, including any recommendations.
-   
+   c. Check any existing open pull requests that are related to performance improvements especially any opened by you ("github-actions") in the past.
+
 2. Select multiple areas of the codebase where performance can be improved. This could include:
    - Functions or methods that are slow
    - Algorithms that can be optimized
@@ -105,7 +106,7 @@ Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for 
 
    a. Create a new branch and make changes to improve performance. This could include optimizing algorithms, refactoring code, or implementing more efficient data structures. Ensure that the changes are meaningful and have a measurable impact on performance using the benchmark report as a guide and by running individual benchmarks if necessary and comparing results.
 
-   b. Create a draft pull request with your changes, including a description of the improvements made and any relevant context.
+   b. Create a draft pull request with your changes, including a description of the improvements, details of the benchmark runs that show improvement and by how much, made and any relevant context.
    
    c. Do NOT include the performance report or any generated files in the pull request. Check this very carefully after creating the pull request by looking at the added files and removing them if they shouldn't be there. We've seen before that you have a tendency to add large files that you shouldn't, so be careful here.
 
