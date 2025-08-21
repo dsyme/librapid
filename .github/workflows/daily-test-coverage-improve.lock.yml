@@ -43,7 +43,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Build and run test to produce coverage report
-        run: "# This step should build your project and run tests to produce a coverage report.\n# Replace with your actual build and test commands.\necho \"Building project and running tests...\"\necho \"Coverage report generated.\"\n"
+        run: "# Create build directory and configure with coverage enabled\nmkdir -p build\ncd build\ncmake .. -DCMAKE_BUILD_TYPE=Debug -DLIBRAPID_BUILD_TESTS=ON -DLIBRAPID_CODE_COV=ON\n\n# Build the project\nmake -j$(nproc)\n\n# Run tests to generate coverage data\nctest --output-on-failure\n\n# Generate coverage report\nmake librapid_coverage\n\n# Upload coverage report as artifact\ncd ..\nfind . -name \"*.html\" -path \"*/coverage/*\" | head -20 | xargs ls -la\n"
       - name: Setup agent output
         id: setup_agent_output
         uses: actions/github-script@v7

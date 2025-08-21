@@ -45,10 +45,23 @@ steps:
     uses: actions/checkout@v3
   - name: Build and run test to produce coverage report
     run: |
-      # This step should build your project and run tests to produce a coverage report.
-      # Replace with your actual build and test commands.
-      echo "Building project and running tests..."
-      echo "Coverage report generated."
+      # Create build directory and configure with coverage enabled
+      mkdir -p build
+      cd build
+      cmake .. -DCMAKE_BUILD_TYPE=Debug -DLIBRAPID_BUILD_TESTS=ON -DLIBRAPID_CODE_COV=ON
+      
+      # Build the project
+      make -j$(nproc)
+      
+      # Run tests to generate coverage data
+      ctest --output-on-failure
+      
+      # Generate coverage report
+      make librapid_coverage
+      
+      # Upload coverage report as artifact
+      cd ..
+      find . -name "*.html" -path "*/coverage/*" | head -20 | xargs ls -la
 
 ---
 
