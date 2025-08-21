@@ -2,7 +2,7 @@
 # To update this file, edit the corresponding .md file and run:
 #   gh aw compile
 #
-# Effective stop-time: 2025-08-23 22:15:20
+# Effective stop-time: 2025-08-23 22:27:13
 
 name: "Daily Performance Improvement"
 on:
@@ -33,8 +33,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
       - name: Build and produce benchmarking report
-        run: "# Install dependencies\nsudo apt-get update\nsudo apt-get install -y cmake build-essential libblas-dev liblapack-dev\n\n# Create build directory and configure\nmkdir -p build\ncd build\ncmake .. -DCMAKE_BUILD_TYPE=Release -DLIBRAPID_BUILD_TESTS=ON\n\n# Build the project\ncmake --build . --parallel $(nproc)\n\n# Run tests with benchmarks enabled (without --skip-benchmarks flag)\nctest --output-on-failure --parallel $(nproc)\n\n# Run specific benchmark tests and capture output\necho \"=== LibRapid Performance Benchmark Report ===\" > benchmark_report.txt\ndate >> benchmark_report.txt\necho \"\" >> benchmark_report.txt\n\n# Run tests without --skip-benchmarks to include benchmark output\n./test/test-arrayArithmetic -s || true\n#./test/test-cudaStorage -s || true  \n#./test/test-fixedStorage -s || true\n#./test/test-storage -s || true\n\n# Upload benchmark report as artifact\necho \"Benchmark report generated at: $(pwd)/benchmark_report.txt\"\n"
+        run: "# Install dependencies\nsudo apt-get update\nsudo apt-get install -y cmake build-essential libblas-dev liblapack-dev\n\n# Create build directory and configure\nmkdir -p build\ncd build\ncmake .. -DCMAKE_BUILD_TYPE=Release -DLIBRAPID_BUILD_TESTS=ON\n\n# Build the project\nmake -j$(nproc)\n\n# Run tests with benchmarks enabled (without --skip-benchmarks flag)\nctest --output-on-failure --parallel $(nproc)\n\n# Run specific benchmark tests and capture output\necho \"=== LibRapid Performance Benchmark Report ===\" > benchmark_report.txt\ndate >> benchmark_report.txt\necho \"\" >> benchmark_report.txt\n\n# Run tests without --skip-benchmarks to include benchmark output\n./test/test-arrayArithmetic -s || true\n#./test/test-cudaStorage -s || true  \n#./test/test-fixedStorage -s || true\n#./test/test-storage -s || true\n\n# Upload benchmark report as artifact\necho \"Benchmark report generated at: $(pwd)/benchmark_report.txt\"\n"
       - name: Setup agent output
         id: setup_agent_output
         uses: actions/github-script@v7
@@ -87,7 +89,7 @@ jobs:
           WORKFLOW_NAME="Daily Performance Improvement"
           
           # Check stop-time limit
-          STOP_TIME="2025-08-23 22:15:20"
+          STOP_TIME="2025-08-23 22:27:13"
           echo "Checking stop-time limit: $STOP_TIME"
           
           # Convert stop time to epoch seconds
