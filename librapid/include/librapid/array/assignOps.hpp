@@ -49,17 +49,52 @@ namespace librapid {
 										   function.shape());
 
 			if constexpr (allowVectorisation) {
-				for (int64_t index = 0; index < vectorSize; index += packetWidth) {
+				// Loop unrolling with 4x factor for better instruction-level parallelism
+				constexpr int64_t unrollFactor = 4;
+				const int64_t unrolledVectorSize = vectorSize - (vectorSize % (packetWidth * unrollFactor));
+
+				// Process unrolled sections with prefetching for better cache performance
+				for (int64_t index = 0; index < unrolledVectorSize; index += packetWidth * unrollFactor) {
+					// Prefetch next cache line to reduce memory latency
+					#if defined(__GNUC__) || defined(__clang__)
+					__builtin_prefetch(&lhs.storage().data()[index + 64], 1, 3);
+					#endif
+
+					// Unrolled loop for better instruction-level parallelism
+					lhs.writePacket(index, function.packet(index));
+					lhs.writePacket(index + packetWidth, function.packet(index + packetWidth));
+					lhs.writePacket(index + packetWidth * 2, function.packet(index + packetWidth * 2));
+					lhs.writePacket(index + packetWidth * 3, function.packet(index + packetWidth * 3));
+				}
+
+				// Process remaining vectorized elements (less than 4x unroll)
+				for (int64_t index = unrolledVectorSize; index < vectorSize; index += packetWidth) {
 					lhs.writePacket(index, function.packet(index));
 				}
 
-				// Assign the remaining elements
+				// Assign the remaining scalar elements
 				for (int64_t index = vectorSize; index < size; ++index) {
 					lhs.write(index, function.scalar(index));
 				}
 			} else {
-				// Assign the remaining elements
-				for (int64_t index = 0; index < size; ++index) {
+				// Scalar loop unrolling for non-vectorized operations
+				constexpr int64_t unrollFactor = 8;
+				const int64_t unrolledSize = size - (size % unrollFactor);
+
+				// Process unrolled sections
+				for (int64_t index = 0; index < unrolledSize; index += unrollFactor) {
+					lhs.write(index, function.scalar(index));
+					lhs.write(index + 1, function.scalar(index + 1));
+					lhs.write(index + 2, function.scalar(index + 2));
+					lhs.write(index + 3, function.scalar(index + 3));
+					lhs.write(index + 4, function.scalar(index + 4));
+					lhs.write(index + 5, function.scalar(index + 5));
+					lhs.write(index + 6, function.scalar(index + 6));
+					lhs.write(index + 7, function.scalar(index + 7));
+				}
+
+				// Process remaining elements
+				for (int64_t index = unrolledSize; index < size; ++index) {
 					lhs.write(index, function.scalar(index));
 				}
 			}
@@ -109,18 +144,68 @@ namespace librapid {
 										   function.shape());
 
 			if constexpr (allowVectorisation) {
-				for (int64_t index = 0; index < vectorSize; index += packetWidth) {
-					lhs.writePacket(index, function.packet(index));
-				}
+				// Fixed-size array optimizations - different strategies based on size
+				if constexpr (elements <= 64) {
+					// Small arrays: full unrolling for zero overhead
+					#pragma unroll
+					for (int64_t index = 0; index < vectorSize; index += packetWidth) {
+						lhs.writePacket(index, function.packet(index));
+					}
+					#pragma unroll
+					for (int64_t index = vectorSize; index < elements; ++index) {
+						lhs.write(index, function.scalar(index));
+					}
+				} else {
+					// Larger fixed arrays: 4x unrolling with prefetching
+					constexpr int64_t unrollFactor = 4;
+					constexpr int64_t unrolledVectorSize = vectorSize - (vectorSize % (packetWidth * unrollFactor));
 
-				// Assign the remaining elements
-				for (int64_t index = vectorSize; index < elements; ++index) {
-					lhs.write(index, function.scalar(index));
+					for (int64_t index = 0; index < unrolledVectorSize; index += packetWidth * unrollFactor) {
+						#if defined(__GNUC__) || defined(__clang__)
+						__builtin_prefetch(&lhs.storage().data()[index + 64], 1, 3);
+						#endif
+
+						lhs.writePacket(index, function.packet(index));
+						lhs.writePacket(index + packetWidth, function.packet(index + packetWidth));
+						lhs.writePacket(index + packetWidth * 2, function.packet(index + packetWidth * 2));
+						lhs.writePacket(index + packetWidth * 3, function.packet(index + packetWidth * 3));
+					}
+
+					for (int64_t index = unrolledVectorSize; index < vectorSize; index += packetWidth) {
+						lhs.writePacket(index, function.packet(index));
+					}
+
+					for (int64_t index = vectorSize; index < elements; ++index) {
+						lhs.write(index, function.scalar(index));
+					}
 				}
 			} else {
-				// Assign the remaining elements
-				for (int64_t index = 0; index < elements; ++index) {
-					lhs.write(index, function.scalar(index));
+				// Fixed-size scalar optimizations
+				if constexpr (elements <= 32) {
+					// Full unrolling for very small arrays
+					#pragma unroll
+					for (int64_t index = 0; index < elements; ++index) {
+						lhs.write(index, function.scalar(index));
+					}
+				} else {
+					// Partial unrolling for larger arrays
+					constexpr int64_t unrollFactor = 8;
+					constexpr int64_t unrolledSize = elements - (elements % unrollFactor);
+
+					for (int64_t index = 0; index < unrolledSize; index += unrollFactor) {
+						lhs.write(index, function.scalar(index));
+						lhs.write(index + 1, function.scalar(index + 1));
+						lhs.write(index + 2, function.scalar(index + 2));
+						lhs.write(index + 3, function.scalar(index + 3));
+						lhs.write(index + 4, function.scalar(index + 4));
+						lhs.write(index + 5, function.scalar(index + 5));
+						lhs.write(index + 6, function.scalar(index + 6));
+						lhs.write(index + 7, function.scalar(index + 7));
+					}
+
+					for (int64_t index = unrolledSize; index < elements; ++index) {
+						lhs.write(index, function.scalar(index));
+					}
 				}
 			}
 		}
