@@ -16,16 +16,41 @@ namespace librapid::fastmath {
                                       10000,
                                       100000,
                                       1000000,
-                                      1000000};
+                                      10000000};
 
         if (exponent >= -7 && exponent <= 7) return pows[exponent + 7];
 
         double res = 1;
 
-        if (exponent > 0)
-            for (int64_t i = 0; i < exponent; ++i) res *= 10.;
-        else
-            for (int64_t i = 0; i > exponent; --i) res *= 0.1;
+        if (exponent > 0) {
+            // Optimized loop unrolling for better performance
+            int64_t remaining = exponent;
+            while (remaining >= 4) {
+                res *= 10000.0;  // 10^4
+                remaining -= 4;
+            }
+            while (remaining >= 2) {
+                res *= 100.0;    // 10^2
+                remaining -= 2;
+            }
+            if (remaining == 1) {
+                res *= 10.0;
+            }
+        } else {
+            // Optimized loop for negative exponents
+            int64_t remaining = -exponent;
+            while (remaining >= 4) {
+                res *= 0.0001;   // 10^-4
+                remaining -= 4;
+            }
+            while (remaining >= 2) {
+                res *= 0.01;     // 10^-2
+                remaining -= 2;
+            }
+            if (remaining == 1) {
+                res *= 0.1;
+            }
+        }
 
         return res;
     }
