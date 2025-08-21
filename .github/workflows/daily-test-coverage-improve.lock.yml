@@ -31,7 +31,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: Build and run test to produce coverage report
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
+      - name: Install gcovr
+        run: pip install gcovr
+      - env:
+          LIBRAPID_OPENCL: "OFF"
+        name: Build and run test to produce coverage report
         run: "# Create build directory and configure with coverage enabled\nmkdir -p build\ncd build\ncmake .. -DCMAKE_BUILD_TYPE=Debug -DLIBRAPID_BUILD_TESTS=ON -DLIBRAPID_CODE_COV=ON\n\n# Build the project\nmake -j$(nproc)\n\n# Run tests to generate coverage data\nctest --output-on-failure\n\n# Generate coverage report\nmake librapid_coverage\n\n# Upload coverage report as artifact\ncd ..\nfind . -name \"*.html\" -path \"*/coverage/*\" | head -20 | xargs ls -la\n"
       - name: Setup agent output
         id: setup_agent_output

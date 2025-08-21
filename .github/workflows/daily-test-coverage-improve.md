@@ -43,6 +43,10 @@ tools:
 steps:
   - name: Checkout repository
     uses: actions/checkout@v3
+  - name: Initialize submodules
+    run: git submodule update --init --recursive
+  - name: Install gcovr
+    run: pip install gcovr
   - name: Build and run test to produce coverage report
     run: |
       # Create build directory and configure with coverage enabled
@@ -62,6 +66,8 @@ steps:
       # Upload coverage report as artifact
       cd ..
       find . -name "*.html" -path "*/coverage/*" | head -20 | xargs ls -la
+    env:
+      LIBRAPID_OPENCL: OFF  # Or set to ON if OpenCL is installed
 
 ---
 
