@@ -28,5 +28,8 @@ make_test(vector)
 make_test(complex)
 make_test(mathUtilities)
 make_test(set)
+make_test(consoleSize)
+make_test(fastmath)
+make_test(global)
 
 make_test(sigmoid)
