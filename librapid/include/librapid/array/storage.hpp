@@ -401,15 +401,42 @@ namespace librapid {
 			LIBRAPID_ASSUME(src != nullptr);
 
 			if constexpr (std::is_same_v<T, V>) {
-				if constexpr (typetraits::TriviallyDefaultConstructible<T>::value) {
-					// Use a slightly faster memcpy if the type is trivially default constructible
+				if constexpr (typetraits::TriviallyDefaultConstructible<T>::value && sizeof(T) <= 8) {
+					// Use memcpy for small trivially copyable types
+					std::memcpy(dst, src, size * sizeof(T));
+				} else if constexpr (std::is_same_v<T, std::string>) {
+					// Optimized string copying with batch processing and reserve optimization
+					constexpr size_t batchSize = 512; // Process in batches for better cache locality
+					
+					for (size_t i = 0; i < size; i += batchSize) {
+						const size_t endIdx = std::min(i + batchSize, size);
+						
+						// Pre-scan to determine average string size for better reserve strategy
+						size_t totalSize = 0;
+						for (size_t j = i; j < endIdx; ++j) {
+							totalSize += src[j].size();
+						}
+						const size_t avgSize = totalSize / (endIdx - i);
+						
+						// Copy with optimized capacity allocation
+						for (size_t j = i; j < endIdx; ++j) {
+							dst[j].reserve(std::max(src[j].size(), avgSize));
+							dst[j] = src[j];
+						}
+					}
+				} else if constexpr (std::is_trivially_copyable_v<T>) {
+					// Use uninitialized_copy for trivially copyable types
 					std::uninitialized_copy(src, src + size, dst);
 				} else {
-					// Otherwise, use the standard copy algorithm
-					std::copy(src, src + size, dst);
+					// For complex types, use batched copying for better cache performance
+					constexpr size_t batchSize = 256;
+					for (size_t i = 0; i < size; i += batchSize) {
+						const size_t endIdx = std::min(i + batchSize, size);
+						std::uninitialized_copy(src + i, src + endIdx, dst + i);
+					}
 				}
 			} else {
-				// Cannot use memcpy if the types are different
+				// Cannot use optimized copying if the types are different
 				std::copy(src, src + size, dst);
 			}
 		}
@@ -429,7 +456,41 @@ namespace librapid {
 	Storage<T>::Storage(SizeType size, ConstReference value) :
 			m_begin(detail::safeAllocate<T>(size)), m_size(size), m_ownsData(true) {
 		auto ptr_ = LIBRAPID_ASSUME_ALIGNED(m_begin);
-		for (SizeType i = 0; i < size; ++i) { ptr_[i] = value; }
+		
+		// Optimize fill operations based on type characteristics
+		if constexpr (std::is_trivially_copyable_v<T> && sizeof(T) <= 8) {
+			// For small trivially copyable types, use std::fill for better vectorization
+			std::fill(ptr_, ptr_ + size, value);
+		} else if constexpr (std::is_same_v<T, std::string>) {
+			// Optimized string filling: batch construction with string reserve optimization
+			const size_t valueSize = value.size();
+			const size_t totalCapacity = valueSize * size;
+			
+			// Use uninitialized construction for better performance
+			std::uninitialized_fill(ptr_, ptr_ + size, T{});
+			
+			// Then assign values in batches to reduce allocation overhead
+			if (valueSize > 0) {
+				constexpr size_t batchSize = 1024; // Process in batches to maintain cache locality
+				for (SizeType i = 0; i < size; i += batchSize) {
+					const SizeType endIdx = std::min(i + batchSize, size);
+					for (SizeType j = i; j < endIdx; ++j) {
+						ptr_[j].reserve(valueSize); // Pre-allocate capacity
+						ptr_[j] = value;
+					}
+				}
+			}
+		} else if constexpr (std::is_constructible_v<T, const T&>) {
+			// For complex types with copy constructors, use optimized batch construction
+			constexpr size_t batchSize = 256;
+			for (SizeType i = 0; i < size; i += batchSize) {
+				const SizeType endIdx = std::min(i + batchSize, size);
+				std::uninitialized_fill(ptr_ + i, ptr_ + endIdx, value);
+			}
+		} else {
+			// Fallback for other types
+			for (SizeType i = 0; i < size; ++i) { ptr_[i] = value; }
+		}
 	}
 
 	template<typename T>
