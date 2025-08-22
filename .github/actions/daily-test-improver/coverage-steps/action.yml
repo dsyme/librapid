@@ -1,0 +1,85 @@
+name: 'LibRapid Coverage Steps'
+description: 'Build project, run tests, and generate coverage report for LibRapid'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup environment
+      shell: bash
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential cmake ninja-build lcov gcovr gcc-14 g++-14
+
+    - name: Configure CMake for Coverage
+      shell: bash
+      run: |
+        mkdir -p build-coverage
+        cd build-coverage
+        cmake .. \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_C_COMPILER=gcc-14 \
+          -DCMAKE_CXX_COMPILER=g++-14 \
+          -DLIBRAPID_CODE_COV=ON \
+          -DLIBRAPID_BUILD_EXAMPLES=OFF \
+          -DLIBRAPID_BUILD_TESTS=ON \
+          -DLIBRAPID_USE_BLAS=ON \
+          -DLIBRAPID_GET_BLAS=ON \
+          -DLIBRAPID_USE_MULTIPREC=ON \
+          -DLIBRAPID_GET_FFTW=ON \
+          -DLIBRAPID_USE_OPENCL=OFF
+
+    - name: Build project
+      shell: bash
+      run: |
+        cd build-coverage
+        cmake --build . --config Debug
+
+    - name: Run tests
+      shell: bash
+      run: |
+        cd build-coverage
+        ctest -C Debug --output-on-failure
+
+    - name: Generate coverage report with gcovr
+      shell: bash
+      run: |
+        cd build-coverage
+        gcovr \
+          --root .. \
+          --exclude '../librapid/vendor/.*' \
+          --exclude '../librapid/cxxblas/.*' \
+          --exclude '../test/.*' \
+          --exclude '../examples/.*' \
+          --html-details coverage-report.html \
+          --xml coverage-report.xml \
+          --json coverage-report.json \
+          --txt coverage-report.txt \
+          --print-summary
+
+    - name: Generate coverage report with lcov
+      shell: bash
+      run: |
+        cd build-coverage
+        lcov \
+          --capture \
+          --directory . \
+          --output-file coverage.info \
+          --base-directory .. \
+          --gcov-tool gcov-14
+        lcov \
+          --remove coverage.info \
+          '*/vendor/*' \
+          '*/cxxblas/*' \
+          '*/test/*' \
+          '*/examples/*' \
+          '/usr/*' \
+          --output-file coverage-filtered.info
+        genhtml \
+          coverage-filtered.info \
+          --output-directory coverage-html
+
+    - name: Upload coverage artifacts
+      shell: bash
+      run: |
+        echo "Coverage reports generated in build-coverage/"
+        ls -la build-coverage/coverage*
