@@ -8,7 +8,6 @@ permissions:
   actions: write # allow changes to workflow files
   models: read
   issues: read 
-  actions: read
   checks: read
   statuses: read
 
