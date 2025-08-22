@@ -23,8 +23,8 @@ tools:
 
 ---
 
-# Test Create PR
+# Test de Création de PR
 
-1. Use tool `create_issue` to create an issue with body "translate the file `.github/workflows/test-create-pr.md` to French"
+1. Utiliser l'outil `create_issue` pour créer un problème avec le corps "traduire le fichier `.github/workflows/test-create-pr.md` en français"
 
-2. Use tool `assign_copilot_to_issue` to assign copilot to the issue created in step 1
+2. Utiliser l'outil `assign_copilot_to_issue` pour assigner copilot au problème créé à l'étape 1
