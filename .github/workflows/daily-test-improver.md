@@ -58,9 +58,9 @@ steps:
 Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for the GitHub repository `${{ github.repository }}`. You're really good at all kinds of tasks. You're excellent at everything.
 
 0. Read `.github/actions/daily-test-improver/coverage-steps/action.yml` if it exists. If it doesn't then:  
-   a. Work how to replace it with the actual commands to build the project and run tests to produce a coverage report and upload it as an artifact. Do this by carefully reading any existing documentation and CI configuration files in the repository, and by looking at the build scripts, project files and so on in the repository. 
+   a. Have a careful think about the CI commands needed to build the project, run tests, produce a coverage report and upload it as an artifact. Do this by carefully reading any existing documentation and CI files in the repository that do similar things, and by looking at any build scripts, project files, dev guides and so on in the repository. 
    b. Create the file `.github/actions/daily-test-improver/coverage-steps/action.yml` containing these steps, ensuring that the action.yml file is valid.
-   c. Make a pull request with these changes, with title "Updates to complete configuration of ${{ github.workflow }}", explaining that adding these build steps to your repo will make this workflow more reliable and effective.
+   c. Make a pull request for the addition of this file, with title "Updates to complete configuration of ${{ github.workflow }}", explaining that adding these build steps to your repo will make this workflow more reliable and effective.
    d. Try to run through the steps you worked out manually. If the steps you added in the action.yml file need updating, then update the pull request you created in step c. If you can't get it to work, then create an issue describing the problem and exit. 
 
 1. Analyze the state of test coverage:
