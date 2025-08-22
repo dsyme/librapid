@@ -1,0 +1,95 @@
+name: 'LibRapid Build Steps'
+description: 'Common build steps for LibRapid C++ library'
+inputs:
+  compiler:
+    description: 'C++ compiler to use (clang++, g++, msvc)'
+    required: true
+    default: 'g++-14'
+  build_type:
+    description: 'CMake build type (Debug, Release)'
+    required: true
+    default: 'Release'
+  cpp_standard:
+    description: 'C++ standard version (20, 23)'
+    required: true
+    default: '20'
+  enable_blas:
+    description: 'Enable BLAS support'
+    required: false
+    default: 'on'
+  enable_fftw:
+    description: 'Enable FFTW support'
+    required: false
+    default: 'on'
+  enable_mpfr:
+    description: 'Enable MPFR support'
+    required: false
+    default: 'on'
+
+runs:
+  using: 'composite'
+  steps:
+    # Step 1: Checkout the repository with all submodules
+    - name: Checkout LibRapid Repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+      shell: bash
+
+    # Step 2: Install required system dependencies based on OS
+    - name: Install System Dependencies
+      shell: bash
+      run: |
+        if [[ "${{ runner.os }}" == "Linux" ]]; then
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build
+        elif [[ "${{ runner.os }}" == "macOS" ]]; then
+          brew install cmake ninja
+        fi
+
+    # Step 3: Setup Python environment for any Python-based tools
+    - name: Setup Python Environment
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+
+    # Step 4: Configure CMake with specified build parameters
+    - name: Configure CMake Build
+      shell: bash
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. \
+          -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} \
+          -DCMAKE_CXX_STANDARD=${{ inputs.cpp_standard }} \
+          -DLIBRAPID_BUILD_EXAMPLES=on \
+          -DLIBRAPID_BUILD_TESTS=on \
+          -DLIBRAPID_USE_BLAS=${{ inputs.enable_blas }} \
+          -DLIBRAPID_GET_BLAS=${{ inputs.enable_blas }} \
+          -DLIBRAPID_USE_FFTW=${{ inputs.enable_fftw }} \
+          -DLIBRAPID_USE_MULTIPREC=${{ inputs.enable_mpfr }} \
+          -DLIBRAPID_USE_OPENCL=off
+      env:
+        CXX: ${{ inputs.compiler }}
+
+    # Step 5: Build the project using CMake
+    - name: Build LibRapid Project
+      shell: bash
+      run: |
+        cd build
+        cmake --build . --config ${{ inputs.build_type }} --parallel $(nproc)
+
+    # Step 6: Run unit tests to verify build quality
+    - name: Execute Unit Tests
+      shell: bash
+      run: |
+        cd build
+        ctest -C ${{ inputs.build_type }} --output-on-failure --parallel $(nproc)
+
+    # Step 7: Install the built library (optional)
+    - name: Install LibRapid Library
+      shell: bash
+      run: |
+        cd build
+        sudo cmake --install . --config ${{ inputs.build_type }}
+      if: inputs.install == 'true'
