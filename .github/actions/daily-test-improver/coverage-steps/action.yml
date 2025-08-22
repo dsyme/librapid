@@ -1,0 +1,69 @@
+# Action to run coverage steps for LibRapid
+name: "Coverage Steps"
+description: "Build project, run tests, and generate coverage report for LibRapid"
+author: "Daily Test Coverage Improver"
+runs:
+  using: "composite"
+
+  steps:
+    - name: Checkout repository with submodules
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Get latest CMake
+      uses: lukka/get-cmake@latest
+
+    - name: Install Coverage Tools
+      shell: bash
+      run: |
+        sudo apt update
+        sudo apt install lcov gcovr
+
+    - name: Configure CMake for Coverage
+      shell: bash
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Debug -DLIBRAPID_CODE_COV=on -DLIBRAPID_BUILD_EXAMPLES=off -DLIBRAPID_BUILD_TESTS=on -DLIBRAPID_USE_BLAS=ON -DLIBRAPID_GET_FFTW=on -DLIBRAPID_USE_MULTIPREC=on -DLIBRAPID_USE_OPENCL=off -DLIBRAPID_USE_CUDA=off
+      env:
+        CC: gcc-14
+        CXX: g++-14
+
+    - name: Build project
+      shell: bash
+      run: |
+        cd build
+        cmake --build . --parallel $(nproc)
+
+    - name: Run tests
+      shell: bash
+      run: |
+        cd build
+        ctest -C Debug --output-on-failure --parallel $(nproc)
+
+    - name: Generate Coverage Report
+      shell: bash
+      run: |
+        cd build
+        # Generate lcov info
+        lcov --capture --directory . --output-file coverage.info
+        lcov --remove coverage.info '/usr/*' --output-file coverage.info.cleaned
+        lcov --remove coverage.info.cleaned '*/test/*' --output-file coverage.info.final
+        lcov --remove coverage.info.final '*/vendor/*' --output-file coverage.info.final2
+        mv coverage.info.final2 coverage.info
+        # Generate HTML report
+        genhtml coverage.info --output-directory coverage_html
+        # Generate gcovr reports
+        gcovr --exclude '/usr/.*' --exclude '.*/test/.*' --exclude '.*/vendor/.*' --xml coverage.xml
+        gcovr --exclude '/usr/.*' --exclude '.*/test/.*' --exclude '.*/vendor/.*' --html --html-details -o coverage.html
+
+    - name: Upload Coverage Report as Artifact  
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: |
+          build/coverage.info
+          build/coverage_html/
+          build/coverage.xml
+          build/coverage.html
