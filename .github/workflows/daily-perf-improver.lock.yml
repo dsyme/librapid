@@ -2,9 +2,9 @@
 # To update this file, edit the corresponding .md file and run:
 #   gh aw compile
 #
-# Effective stop-time: 2025-08-24 20:29:04
+# Effective stop-time: 2025-08-24 21:18:14
 
-name: "Daily Performance Improvement"
+name: "Daily Perf Improver"
 on:
   schedule:
   - cron: 0 2 * * 1-5
@@ -15,10 +15,10 @@ permissions: {}
 concurrency:
   group: "gh-aw-${{ github.workflow }}"
 
-run-name: "Daily Performance Improvement"
+run-name: "Daily Perf Improver"
 
 jobs:
-  daily-performance-improvement:
+  daily-perf-improver:
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -85,10 +85,10 @@ jobs:
         run: |
           set -e
           echo "Performing safety checks before executing agentic tools..."
-          WORKFLOW_NAME="Daily Performance Improvement"
+          WORKFLOW_NAME="Daily Perf Improver"
           
           # Check stop-time limit
-          STOP_TIME="2025-08-24 20:29:04"
+          STOP_TIME="2025-08-24 21:18:14"
           echo "Checking stop-time limit: $STOP_TIME"
           
           # Convert stop time to epoch seconds
@@ -116,7 +116,7 @@ jobs:
         run: |
           mkdir -p /tmp/aw-prompts
           cat > /tmp/aw-prompts/prompt.txt << 'EOF'
-          # Daily Performance Improvement
+          # Daily Perf Improver
           
           ## Job Description
           
@@ -276,7 +276,7 @@ jobs:
               engine_name: "Claude Code",
               model: "",
               version: "",
-              workflow_name: "Daily Performance Improvement",
+              workflow_name: "Daily Perf Improver",
               experimental: false,
               supports_tools_whitelist: true,
               supports_http_transport: true,
@@ -389,13 +389,13 @@ jobs:
         run: |
           # Copy the detailed execution file from Agentic Action if available
           if [ -n "${{ steps.agentic_execution.outputs.execution_file }}" ] && [ -f "${{ steps.agentic_execution.outputs.execution_file }}" ]; then
-            cp ${{ steps.agentic_execution.outputs.execution_file }} /tmp/daily-performance-improvement.log
+            cp ${{ steps.agentic_execution.outputs.execution_file }} /tmp/daily-perf-improver.log
           else
-            echo "No execution file output found from Agentic Action" >> /tmp/daily-performance-improvement.log
+            echo "No execution file output found from Agentic Action" >> /tmp/daily-perf-improver.log
           fi
           
           # Ensure log file exists
-          touch /tmp/daily-performance-improvement.log
+          touch /tmp/daily-perf-improver.log
       - name: Check if workflow-complete.txt exists, if so upload it
         id: check_file
         run: |
@@ -489,8 +489,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: daily-performance-improvement.log
-          path: /tmp/daily-performance-improvement.log
+          name: daily-perf-improver.log
+          path: /tmp/daily-perf-improver.log
           if-no-files-found: warn
       - name: Generate git patch
         if: always()
