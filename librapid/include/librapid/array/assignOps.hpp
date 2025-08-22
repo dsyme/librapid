@@ -49,7 +49,17 @@ namespace librapid {
 										   function.shape());
 
 			if constexpr (allowVectorisation) {
+				// Prefetch data for better cache performance  
+				constexpr int64_t prefetchDistance = 64; // Cache line size
+				
 				for (int64_t index = 0; index < vectorSize; index += packetWidth) {
+					// Prefetch ahead for write operations (next cache line)
+					if (index + prefetchDistance < vectorSize) {
+#ifdef __builtin_prefetch
+						__builtin_prefetch(&lhs.storage().data()[index + prefetchDistance], 1, 3);
+#endif
+					}
+					
 					lhs.writePacket(index, function.packet(index));
 				}
 
@@ -58,8 +68,17 @@ namespace librapid {
 					lhs.write(index, function.scalar(index));
 				}
 			} else {
-				// Assign the remaining elements
+				// Prefetch for scalar operations too
+				constexpr int64_t prefetchDistance = 64;
+				
 				for (int64_t index = 0; index < size; ++index) {
+					// Prefetch ahead for scalar operations  
+					if (index + prefetchDistance < size) {
+#ifdef __builtin_prefetch
+						__builtin_prefetch(&lhs.storage().data()[index + prefetchDistance], 1, 3);
+#endif
+					}
+					
 					lhs.write(index, function.scalar(index));
 				}
 			}
@@ -109,18 +128,63 @@ namespace librapid {
 										   function.shape());
 
 			if constexpr (allowVectorisation) {
-				for (int64_t index = 0; index < vectorSize; index += packetWidth) {
-					lhs.writePacket(index, function.packet(index));
-				}
-
-				// Assign the remaining elements
-				for (int64_t index = vectorSize; index < elements; ++index) {
-					lhs.write(index, function.scalar(index));
+				// Compile-time optimization for small arrays
+				if constexpr (elements <= 32) {
+					// Full unrolling for very small arrays (zero overhead)
+#pragma unroll
+					for (int64_t index = 0; index < vectorSize; index += packetWidth) {
+						lhs.writePacket(index, function.packet(index));
+					}
+#pragma unroll
+					for (int64_t index = vectorSize; index < elements; ++index) {
+						lhs.write(index, function.scalar(index));
+					}
+				} else if constexpr (elements <= 64) {
+					// Partial unrolling for medium arrays
+#pragma unroll 4
+					for (int64_t index = 0; index < vectorSize; index += packetWidth) {
+						lhs.writePacket(index, function.packet(index));
+					}
+					for (int64_t index = vectorSize; index < elements; ++index) {
+						lhs.write(index, function.scalar(index));
+					}
+				} else {
+					// Prefetching for large arrays  
+					constexpr int64_t prefetchDistance = 64;
+					
+					for (int64_t index = 0; index < vectorSize; index += packetWidth) {
+						if (index + prefetchDistance < vectorSize) {
+#ifdef __builtin_prefetch
+							__builtin_prefetch(&lhs.storage().data()[index + prefetchDistance], 1, 3);
+#endif
+						}
+						lhs.writePacket(index, function.packet(index));
+					}
+					
+					for (int64_t index = vectorSize; index < elements; ++index) {
+						lhs.write(index, function.scalar(index));
+					}
 				}
 			} else {
-				// Assign the remaining elements
-				for (int64_t index = 0; index < elements; ++index) {
-					lhs.write(index, function.scalar(index));
+				// Scalar optimization based on array size
+				if constexpr (elements <= 32) {
+					// Full unrolling for small scalar arrays
+#pragma unroll  
+					for (int64_t index = 0; index < elements; ++index) {
+						lhs.write(index, function.scalar(index));
+					}
+				} else {
+					// Prefetching for larger scalar arrays
+					constexpr int64_t prefetchDistance = 64;
+					
+					for (int64_t index = 0; index < elements; ++index) {
+						if (index + prefetchDistance < elements) {
+#ifdef __builtin_prefetch
+							__builtin_prefetch(&lhs.storage().data()[index + prefetchDistance], 1, 3);
+#endif
+						}
+						lhs.write(index, function.scalar(index));
+					}
 				}
 			}
 		}

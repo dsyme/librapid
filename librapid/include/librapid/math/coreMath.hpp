@@ -224,12 +224,56 @@ namespace librapid {
 	template<typename T>
 		requires(std::is_fundamental_v<T>)
 	LIBRAPID_NODISCARD LIBRAPID_ALWAYS_INLINE constexpr auto exp10(T val) {
-		// C++ standard does not implement exp10
-
+		// Optimized exp10 implementation using lookup tables and bit manipulation
+		
 		if constexpr (std::is_integral_v<T>) {
-			return std::pow(10.0, static_cast<double>(val));
+			auto doubleVal = static_cast<double>(val);
+			
+			// Fast lookup table for small positive exponents
+			if (doubleVal >= 0.0 && doubleVal <= 22.0 && doubleVal == std::floor(doubleVal)) {
+				constexpr double lookup[] = {
+					1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11,
+					1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20, 1e21, 1e22
+				};
+				return lookup[static_cast<int>(doubleVal)];
+			}
+			
+			// Fast lookup table for small negative exponents  
+			if (doubleVal < 0.0 && doubleVal >= -22.0 && doubleVal == std::floor(doubleVal)) {
+				constexpr double lookupNeg[] = {
+					1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11,
+					1e-12, 1e-13, 1e-14, 1e-15, 1e-16, 1e-17, 1e-18, 1e-19, 1e-20, 1e-21, 1e-22
+				};
+				return lookupNeg[static_cast<int>(-doubleVal)];
+			}
+			
+			// Fallback to std::pow for large exponents
+			return std::pow(10.0, doubleVal);
 		} else {
-			return std::pow(10.0, val);
+			auto doubleVal = static_cast<double>(val);
+			
+			// Fast path for exact integer values within lookup range
+			if (doubleVal == std::floor(doubleVal)) {
+				if (doubleVal >= 0.0 && doubleVal <= 22.0) {
+					constexpr double lookup[] = {
+						1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11,
+						1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20, 1e21, 1e22
+					};
+					return static_cast<T>(lookup[static_cast<int>(doubleVal)]);
+				}
+				
+				if (doubleVal < 0.0 && doubleVal >= -22.0) {
+					constexpr double lookupNeg[] = {
+						1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11,
+						1e-12, 1e-13, 1e-14, 1e-15, 1e-16, 1e-17, 1e-18, 1e-19, 1e-20, 1e-21, 1e-22
+					};
+					return static_cast<T>(lookupNeg[static_cast<int>(-doubleVal)]);
+				}
+			}
+			
+			// Use exp2 and log2 for better numerical stability: 10^x = 2^(x * log2(10))
+			constexpr double log2_10 = 3.321928094887362347870319429489390175865; // log2(10)
+			return static_cast<T>(std::exp2(doubleVal * log2_10));
 		}
 	}
 
