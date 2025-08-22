@@ -18,7 +18,7 @@ tools:
     allowed:
       Edit:
       Write:
-      Bash: ["gh pr create:*"]
+      Bash: ["git branch:*", "git checkout:*", "git push:*", "git commit:*", "gh pr create:*"]
 
 ---
 
@@ -30,4 +30,9 @@ Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for 
 
 Create a pull request modifying the file `.github/workflows/test-create-pr.md` so that the markdown is translated to French.
 
-Do this by creating a new branch locally, making the changes (using local editing of files), creating a pull request using `gh pr create` bash command.
+Do this by 
+1. creating a new branch locally ("git branch" bash command)
+2. making the changes (using local editing of files)
+3. commiting the changes ("git commit" bash command)
+4. pushing the changes ("git push" bash command)
+5. creating a pull request ("gh pr create" bash command).
