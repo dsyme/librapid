@@ -3,11 +3,10 @@ on:
     workflow_dispatch:
 
 permissions:
-  contents: write # needed to create branches, files, and pull requests in this repo without a fork
-  pull-requests: write # needed to create results pull request
-  actions: write # allow changes to workflow files
+  contents: read
+  actions: read
   models: read
-  issues: read 
+  issues: write 
   checks: read
   statuses: read
 

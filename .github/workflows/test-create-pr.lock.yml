@@ -17,12 +17,11 @@ jobs:
   test-create-pr:
     runs-on: ubuntu-latest
     permissions:
-      actions: write
+      actions: read
       checks: read
-      contents: write
-      issues: read
+      contents: read
+      issues: write
       models: read
-      pull-requests: write
       statuses: read
     outputs:
       output: ${{ steps.collect_output.outputs.output }}
