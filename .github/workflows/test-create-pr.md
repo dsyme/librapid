@@ -10,6 +10,7 @@ permissions:
   issues: read 
   checks: read
   statuses: read
+  workflows: write
 
 tools:
   github:
