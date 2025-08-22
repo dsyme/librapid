@@ -88,7 +88,7 @@ jobs:
           
           Create a pull request modifying the file `.github/workflows/test-create-pr.md` so that the markdown is translated to French.
           
-          Do this by creating a new branch locally, making the changes (using local editing of files), pushing the branch (using `push_files` tool), and creating a pull request using `create_pull_request` tool.
+          Do this by creating a new branch locally, making the changes (using local editing of files), creating a pull request using `gh pr create` bash command.
           
           
           ---
@@ -145,6 +145,7 @@ jobs:
         uses: anthropics/claude-code-base-action@v0.0.56
         with:
           # Allowed tools (sorted):
+          # - Bash(gh pr create:*)
           # - Edit
           # - Glob
           # - Grep
@@ -153,9 +154,6 @@ jobs:
           # - Read
           # - Task
           # - Write
-          # - mcp__github__create_branch
-          # - mcp__github__create_pull_request
-          # - mcp__github__delete_file
           # - mcp__github__download_workflow_run_artifact
           # - mcp__github__get_code_scanning_alert
           # - mcp__github__get_commit
@@ -194,14 +192,13 @@ jobs:
           # - mcp__github__list_workflow_run_artifacts
           # - mcp__github__list_workflow_runs
           # - mcp__github__list_workflows
-          # - mcp__github__push_files
           # - mcp__github__search_code
           # - mcp__github__search_issues
           # - mcp__github__search_orgs
           # - mcp__github__search_pull_requests
           # - mcp__github__search_repositories
           # - mcp__github__search_users
-          allowed_tools: "Edit,Glob,Grep,LS,NotebookRead,Read,Task,Write,mcp__github__create_branch,mcp__github__create_pull_request,mcp__github__delete_file,mcp__github__download_workflow_run_artifact,mcp__github__get_code_scanning_alert,mcp__github__get_commit,mcp__github__get_dependabot_alert,mcp__github__get_discussion,mcp__github__get_discussion_comments,mcp__github__get_file_contents,mcp__github__get_issue,mcp__github__get_issue_comments,mcp__github__get_job_logs,mcp__github__get_me,mcp__github__get_notification_details,mcp__github__get_pull_request,mcp__github__get_pull_request_comments,mcp__github__get_pull_request_diff,mcp__github__get_pull_request_files,mcp__github__get_pull_request_reviews,mcp__github__get_pull_request_status,mcp__github__get_secret_scanning_alert,mcp__github__get_tag,mcp__github__get_workflow_run,mcp__github__get_workflow_run_logs,mcp__github__get_workflow_run_usage,mcp__github__list_branches,mcp__github__list_code_scanning_alerts,mcp__github__list_commits,mcp__github__list_dependabot_alerts,mcp__github__list_discussion_categories,mcp__github__list_discussions,mcp__github__list_issues,mcp__github__list_notifications,mcp__github__list_pull_requests,mcp__github__list_secret_scanning_alerts,mcp__github__list_tags,mcp__github__list_workflow_jobs,mcp__github__list_workflow_run_artifacts,mcp__github__list_workflow_runs,mcp__github__list_workflows,mcp__github__push_files,mcp__github__search_code,mcp__github__search_issues,mcp__github__search_orgs,mcp__github__search_pull_requests,mcp__github__search_repositories,mcp__github__search_users"
+          allowed_tools: "Bash(gh pr create:*),Edit,Glob,Grep,LS,NotebookRead,Read,Task,Write,mcp__github__download_workflow_run_artifact,mcp__github__get_code_scanning_alert,mcp__github__get_commit,mcp__github__get_dependabot_alert,mcp__github__get_discussion,mcp__github__get_discussion_comments,mcp__github__get_file_contents,mcp__github__get_issue,mcp__github__get_issue_comments,mcp__github__get_job_logs,mcp__github__get_me,mcp__github__get_notification_details,mcp__github__get_pull_request,mcp__github__get_pull_request_comments,mcp__github__get_pull_request_diff,mcp__github__get_pull_request_files,mcp__github__get_pull_request_reviews,mcp__github__get_pull_request_status,mcp__github__get_secret_scanning_alert,mcp__github__get_tag,mcp__github__get_workflow_run,mcp__github__get_workflow_run_logs,mcp__github__get_workflow_run_usage,mcp__github__list_branches,mcp__github__list_code_scanning_alerts,mcp__github__list_commits,mcp__github__list_dependabot_alerts,mcp__github__list_discussion_categories,mcp__github__list_discussions,mcp__github__list_issues,mcp__github__list_notifications,mcp__github__list_pull_requests,mcp__github__list_secret_scanning_alerts,mcp__github__list_tags,mcp__github__list_workflow_jobs,mcp__github__list_workflow_run_artifacts,mcp__github__list_workflow_runs,mcp__github__list_workflows,mcp__github__search_code,mcp__github__search_issues,mcp__github__search_orgs,mcp__github__search_pull_requests,mcp__github__search_repositories,mcp__github__search_users"
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude_env: |
             GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
