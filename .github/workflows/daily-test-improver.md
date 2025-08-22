@@ -44,6 +44,7 @@ tools:
 steps:
   - name: Checkout repository
     uses: actions/checkout@v3
+
   - name: Build and run test to produce coverage report
     uses: ./.github/actions/daily-test-improver/coverage-steps
     id: coverage-steps
