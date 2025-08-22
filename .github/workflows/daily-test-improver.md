@@ -7,6 +7,8 @@ on:
 
 timeout_minutes: 15
 
+stop-time: +48h # workflow will no longer trigger after 48 hours
+
 permissions:
   contents: write # needed to create branches, files, and pull requests in this repo without a fork
   models: read
@@ -43,31 +45,11 @@ tools:
 steps:
   - name: Checkout repository
     uses: actions/checkout@v3
-  - name: Initialize submodules
-    run: git submodule update --init --recursive
-  - name: Install gcovr
-    run: pip install gcovr
   - name: Build and run test to produce coverage report
-    run: |
-      # Create build directory and configure with coverage enabled
-      mkdir -p build
-      cd build
-      cmake .. -DCMAKE_BUILD_TYPE=Debug -DLIBRAPID_BUILD_TESTS=ON -DLIBRAPID_CODE_COV=ON
-      
-      # Build the project
-      make -j$(nproc)
-      
-      # Run tests to generate coverage data
-      ctest --output-on-failure
-      
-      # Generate coverage report
-      make librapid_coverage
-      
-      # Upload coverage report as artifact
-      cd ..
-      find . -name "*.html" -path "*/coverage/*" | head -20 | xargs ls -la
-    env:
-      LIBRAPID_OPENCL: OFF  # Or set to ON if OpenCL is installed
+    # Use the action in ../actions/daily-test-improver-coverage-steps if it exists
+    uses: ./.github/actions/daily-test-improver-coverage-steps
+    id: coverage
+    continue-on-error: true
 
 ---
 
@@ -76,6 +58,12 @@ steps:
 ## Job Description
 
 Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for the GitHub repository `${{ github.repository }}`. You're really good at all kinds of tasks. You're excellent at everything.
+
+0. Read `.github/actions/daily-test-improver-coverage-steps/action.yml` if it exists. If it doesn't then:  
+   a. Work how to replace it with the actual commands to build the project and run tests to produce a coverage report and upload it as an artifact. Do this by carefully reading any existing documentation and CI configuration files in the repository, and by looking at the build scripts, project files and so on in the repository. 
+   b. Edit the file `.github/actions/daily-test-improver-coverage-steps/action.yml` to replace the placeholder commands with the actual commands you found.
+   c. Make a pull request with these changes.
+   d. Try to run the steps you worked out manually and continue. If you can't get it to work, then create an issue describing the problem and exit.
 
 1. Analyze the state of test coverage:
    a. Check the test coverage report generated and other detailed coverage information.
@@ -108,20 +96,18 @@ Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for 
 
 6. Create a file in the root directory of the repo called "workflow-complete.txt" with the text "Workflow completed successfully".
 
-@include shared/no-push-to-main.md
+@include flight-school/shared/no-push-to-main.md
 
-@include shared/tool-refused.md
+@include flight-school/shared/tool-refused.md
 
-@include shared/include-link.md
+@include flight-school/shared/include-link.md
 
-@include shared/job-summary.md
+@include flight-school/shared/job-summary.md
 
-@include shared/xpia.md
+@include flight-school/shared/xpia.md
 
-@include shared/gh-extra-tools.md
-
-@include shared/gh-extra-tools.md
+@include flight-school/shared/gh-extra-tools.md
 
 <!-- You can whitelist tools in the shared/build-tools.md file, and include it here. -->
 <!-- This should be done with care, as tools may  -->
-<!-- include shared/build-tools.md -->
+<!-- include flight-school/shared/build-tools.md -->
