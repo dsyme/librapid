@@ -1,0 +1,53 @@
+# Action to run build steps with coverage reporting
+name: "Daily Test Coverage Steps"
+description: "Build project with coverage and run tests to generate coverage report"
+author: "Daily Test Coverage Improve <dsyme@github.com>"
+runs:
+  using: "composite"
+
+  steps:
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcovr lcov gcc-14 g++-14
+      shell: bash
+
+    - name: Set up CMake
+      uses: lukka/get-cmake@v3
+      with:
+        cmake-version: "3.25.0"
+
+    - name: Configure CMake with coverage
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Debug -DLIBRAPID_CODE_COV=on -DLIBRAPID_BUILD_EXAMPLES=off -DLIBRAPID_BUILD_TESTS=on -DLIBRAPID_USE_BLAS=ON -DLIBRAPID_GET_FFTW=on -DLIBRAPID_USE_MULTIPREC=on
+      shell: bash
+      env:
+        CC: gcc-14
+        CXX: g++-14
+
+    - name: Build project
+      run: |
+        cd build
+        cmake --build . --config Debug --parallel $(nproc)
+      shell: bash
+
+    - name: Run tests
+      run: |
+        cd build
+        ctest --test-dir . --output-on-failure --parallel $(nproc)
+      shell: bash
+
+    - name: Generate coverage report
+      run: |
+        cd build
+        make librapid_coverage
+      shell: bash
+
+    - name: Upload coverage report as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: build/librapid_coverage/
+        retention-days: 30
