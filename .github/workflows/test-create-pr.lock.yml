@@ -2,7 +2,7 @@
 # To update this file, edit the corresponding .md file and run:
 #   gh aw compile
 
-name: "Daily Performance Improvement"
+name: "Test Create PR"
 on:
   workflow_dispatch: null
 
@@ -11,10 +11,10 @@ permissions: {}
 concurrency:
   group: "gh-aw-${{ github.workflow }}"
 
-run-name: "Daily Performance Improvement"
+run-name: "Test Create PR"
 
 jobs:
-  daily-performance-improvement:
+  test-create-pr:
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -80,13 +80,15 @@ jobs:
         run: |
           mkdir -p /tmp/aw-prompts
           cat > /tmp/aw-prompts/prompt.txt << 'EOF'
-          # Daily Performance Improvement
+          # Test Create PR
           
           ## Job Description
           
-          Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for the GitHub repository `${{ github.repository }}`. You're really good at all kinds of tasks. You're excellent at everything.
+          Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for the GitHub repository `${{ github.repository }}`. You're really good at all kinds of tasks. You're excellent at everything. You are operating in a checked out copy of the repo. 
           
           Create a pull request modifying the file `.github/workflows/test-create-pr.md` so that the markdown is translated to French.
+          
+          Do this by creating a new branch locally, making the changes (using local editing of files), pushing the branch (using `push_files` tool), and creating a pull request using `create_pull_request` tool.
           
           
           ---
@@ -111,7 +113,7 @@ jobs:
               engine_name: "Claude Code",
               model: "",
               version: "",
-              workflow_name: "Daily Performance Improvement",
+              workflow_name: "Test Create PR",
               experimental: false,
               supports_tools_whitelist: true,
               supports_http_transport: true,
@@ -152,7 +154,6 @@ jobs:
           # - Task
           # - Write
           # - mcp__github__create_branch
-          # - mcp__github__create_or_update_file
           # - mcp__github__create_pull_request
           # - mcp__github__delete_file
           # - mcp__github__download_workflow_run_artifact
@@ -200,8 +201,7 @@ jobs:
           # - mcp__github__search_pull_requests
           # - mcp__github__search_repositories
           # - mcp__github__search_users
-          # - mcp__github__update_pull_request
-          allowed_tools: "Edit,Glob,Grep,LS,NotebookRead,Read,Task,Write,mcp__github__create_branch,mcp__github__create_or_update_file,mcp__github__create_pull_request,mcp__github__delete_file,mcp__github__download_workflow_run_artifact,mcp__github__get_code_scanning_alert,mcp__github__get_commit,mcp__github__get_dependabot_alert,mcp__github__get_discussion,mcp__github__get_discussion_comments,mcp__github__get_file_contents,mcp__github__get_issue,mcp__github__get_issue_comments,mcp__github__get_job_logs,mcp__github__get_me,mcp__github__get_notification_details,mcp__github__get_pull_request,mcp__github__get_pull_request_comments,mcp__github__get_pull_request_diff,mcp__github__get_pull_request_files,mcp__github__get_pull_request_reviews,mcp__github__get_pull_request_status,mcp__github__get_secret_scanning_alert,mcp__github__get_tag,mcp__github__get_workflow_run,mcp__github__get_workflow_run_logs,mcp__github__get_workflow_run_usage,mcp__github__list_branches,mcp__github__list_code_scanning_alerts,mcp__github__list_commits,mcp__github__list_dependabot_alerts,mcp__github__list_discussion_categories,mcp__github__list_discussions,mcp__github__list_issues,mcp__github__list_notifications,mcp__github__list_pull_requests,mcp__github__list_secret_scanning_alerts,mcp__github__list_tags,mcp__github__list_workflow_jobs,mcp__github__list_workflow_run_artifacts,mcp__github__list_workflow_runs,mcp__github__list_workflows,mcp__github__push_files,mcp__github__search_code,mcp__github__search_issues,mcp__github__search_orgs,mcp__github__search_pull_requests,mcp__github__search_repositories,mcp__github__search_users,mcp__github__update_pull_request"
+          allowed_tools: "Edit,Glob,Grep,LS,NotebookRead,Read,Task,Write,mcp__github__create_branch,mcp__github__create_pull_request,mcp__github__delete_file,mcp__github__download_workflow_run_artifact,mcp__github__get_code_scanning_alert,mcp__github__get_commit,mcp__github__get_dependabot_alert,mcp__github__get_discussion,mcp__github__get_discussion_comments,mcp__github__get_file_contents,mcp__github__get_issue,mcp__github__get_issue_comments,mcp__github__get_job_logs,mcp__github__get_me,mcp__github__get_notification_details,mcp__github__get_pull_request,mcp__github__get_pull_request_comments,mcp__github__get_pull_request_diff,mcp__github__get_pull_request_files,mcp__github__get_pull_request_reviews,mcp__github__get_pull_request_status,mcp__github__get_secret_scanning_alert,mcp__github__get_tag,mcp__github__get_workflow_run,mcp__github__get_workflow_run_logs,mcp__github__get_workflow_run_usage,mcp__github__list_branches,mcp__github__list_code_scanning_alerts,mcp__github__list_commits,mcp__github__list_dependabot_alerts,mcp__github__list_discussion_categories,mcp__github__list_discussions,mcp__github__list_issues,mcp__github__list_notifications,mcp__github__list_pull_requests,mcp__github__list_secret_scanning_alerts,mcp__github__list_tags,mcp__github__list_workflow_jobs,mcp__github__list_workflow_run_artifacts,mcp__github__list_workflow_runs,mcp__github__list_workflows,mcp__github__push_files,mcp__github__search_code,mcp__github__search_issues,mcp__github__search_orgs,mcp__github__search_pull_requests,mcp__github__search_repositories,mcp__github__search_users"
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude_env: |
             GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -216,13 +216,13 @@ jobs:
         run: |
           # Copy the detailed execution file from Agentic Action if available
           if [ -n "${{ steps.agentic_execution.outputs.execution_file }}" ] && [ -f "${{ steps.agentic_execution.outputs.execution_file }}" ]; then
-            cp ${{ steps.agentic_execution.outputs.execution_file }} /tmp/daily-performance-improvement.log
+            cp ${{ steps.agentic_execution.outputs.execution_file }} /tmp/test-create-pr.log
           else
-            echo "No execution file output found from Agentic Action" >> /tmp/daily-performance-improvement.log
+            echo "No execution file output found from Agentic Action" >> /tmp/test-create-pr.log
           fi
           
           # Ensure log file exists
-          touch /tmp/daily-performance-improvement.log
+          touch /tmp/test-create-pr.log
       - name: Check if workflow-complete.txt exists, if so upload it
         id: check_file
         run: |
@@ -316,8 +316,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: daily-performance-improvement.log
-          path: /tmp/daily-performance-improvement.log
+          name: test-create-pr.log
+          path: /tmp/test-create-pr.log
           if-no-files-found: warn
       - name: Generate git patch
         if: always()
