@@ -30,3 +30,4 @@ make_test(mathUtilities)
 make_test(set)
 
 make_test(sigmoid)
+make_test(serialization)
