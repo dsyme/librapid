@@ -13,7 +13,7 @@ permissions:
 
 tools:
   github:
-    allowed: [ create_pull_request_with_copilot ]
+    allowed: [ create_issue, assign_copilot_to_issue ]
   claude:
     allowed:
       Edit:
@@ -26,4 +26,6 @@ tools:
 
 # Test Create PR
 
-Use tool `create_pull_request_with_copilot ` to create a Copilot task with task "translate the file `.github/workflows/test-create-pr.md` to French"
+1. Use tool `create_issue` to create an issue with body "translate the file `.github/workflows/test-create-pr.md` to French"
+
+2. Use tool `assign_copilot_to_issue` to assign copilot to the issue created in step 1
