@@ -5,13 +5,12 @@ on:
         # Run daily at 2am UTC, all days except Saturday and Sunday
         - cron: "0 2 * * 1-5"
 
-timeout_minutes: 15
+timeout_minutes: 20
 
 stop-time: +48h # workflow will no longer trigger after 48 hours
 
 permissions:
   contents: write # needed to create branches, files, and pull requests in this repo without a fork
-  models: read
   issues: write # needed to create report issue
   pull-requests: write # needed to create results pull request
   actions: read
@@ -46,28 +45,27 @@ steps:
   - name: Checkout repository
     uses: actions/checkout@v3
   - name: Build and run test to produce coverage report
-    # Use the action in ../actions/daily-test-improver-coverage-steps if it exists
-    uses: ./.github/actions/daily-test-improver-coverage-steps
-    id: coverage
+    uses: ./.github/actions/daily-test-improver/coverage-steps
+    id: coverage-steps
     continue-on-error: true
 
 ---
 
-# Daily Test Coverage Improve
+# Daily Test Coverage Improver
 
 ## Job Description
 
 Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for the GitHub repository `${{ github.repository }}`. You're really good at all kinds of tasks. You're excellent at everything.
 
-0. Read `.github/actions/daily-test-improver-coverage-steps/action.yml` if it exists. If it doesn't then:  
+0. Read `.github/actions/daily-test-improver/coverage-steps/action.yml` if it exists. If it doesn't then:  
    a. Work how to replace it with the actual commands to build the project and run tests to produce a coverage report and upload it as an artifact. Do this by carefully reading any existing documentation and CI configuration files in the repository, and by looking at the build scripts, project files and so on in the repository. 
-   b. Edit the file `.github/actions/daily-test-improver-coverage-steps/action.yml` to replace the placeholder commands with the actual commands you found.
-   c. Make a pull request with these changes.
-   d. Try to run the steps you worked out manually and continue. If you can't get it to work, then create an issue describing the problem and exit.
+   b. Create the file `.github/actions/daily-test-improver/coverage-steps/action.yml` containing these steps, ensuring that the action.yml file is valid.
+   c. Make a pull request with these changes, with title "Updates to complete configuration of ${{ github.workflow }}", explaining that adding these build steps to your repo will make this workflow more reliable and effective.
+   d. Try to run through the steps you worked out manually. If the steps you added in the action.yml file need updating, then update the pull request you created in step c. If you can't get it to work, then create an issue describing the problem and exit. 
 
 1. Analyze the state of test coverage:
    a. Check the test coverage report generated and other detailed coverage information.
-   b. Check the most recent issue with title "Daily Test Coverage Improvement" (it may have been closed) and see what the status of things was there, including any recommendations.
+   b. Check the most recent issue with title starting with "${{ github.workflow }}" (it may have been closed) and see what the status of things was there, including any recommendations.
    
 2. Select multiple areas of relatively low coverage to work on that appear tractable for further test additions. Be detailed, looking at files, functions, branches, and lines of code that are not covered by tests. Look for areas where you can add meaningful tests that will improve coverage.
 
@@ -81,7 +79,7 @@ Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for 
    
    d. Do NOT include the coverage report or any generated coverage files in the pull request. Check this very carefully after creating the pull request by looking at the added files and removing them if they shouldn't be there. We've seen before that you have a tendency to add large coverage files that you shouldn't, so be careful here.
 
-   e. Create an issue with title starting with "Daily Test Coverage Improvement", summarizing
+   e. Create an issue with title starting with "${{ github.workflow }}", summarizing
    
    - the problems you found
    - the actions you took

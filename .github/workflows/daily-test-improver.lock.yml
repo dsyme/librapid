@@ -2,9 +2,9 @@
 # To update this file, edit the corresponding .md file and run:
 #   gh aw compile
 #
-# Effective stop-time: 2025-08-24 19:19:07
+# Effective stop-time: 2025-08-24 19:36:30
 
-name: "Daily Test Coverage Improve"
+name: "Daily Test Coverage Improver"
 on:
   schedule:
   - cron: 0 2 * * 1-5
@@ -15,17 +15,16 @@ permissions: {}
 concurrency:
   group: "gh-aw-${{ github.workflow }}"
 
-run-name: "Daily Test Coverage Improve"
+run-name: "Daily Test Coverage Improver"
 
 jobs:
-  daily-test-coverage-improve:
+  daily-test-coverage-improver:
     runs-on: ubuntu-latest
     permissions:
       actions: read
       checks: read
       contents: write
       issues: write
-      models: read
       pull-requests: write
       statuses: read
     outputs:
@@ -34,9 +33,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - continue-on-error: true
-        id: coverage
+        id: coverage-steps
         name: Build and run test to produce coverage report
-        uses: ./.github/actions/daily-test-improver-coverage-steps
+        uses: ./.github/actions/daily-test-improver/coverage-steps
       - name: Setup agent output
         id: setup_agent_output
         uses: actions/github-script@v7
@@ -86,10 +85,10 @@ jobs:
         run: |
           set -e
           echo "Performing safety checks before executing agentic tools..."
-          WORKFLOW_NAME="Daily Test Coverage Improve"
+          WORKFLOW_NAME="Daily Test Coverage Improver"
           
           # Check stop-time limit
-          STOP_TIME="2025-08-24 19:19:07"
+          STOP_TIME="2025-08-24 19:36:30"
           echo "Checking stop-time limit: $STOP_TIME"
           
           # Convert stop time to epoch seconds
@@ -117,21 +116,21 @@ jobs:
         run: |
           mkdir -p /tmp/aw-prompts
           cat > /tmp/aw-prompts/prompt.txt << 'EOF'
-          # Daily Test Coverage Improve
+          # Daily Test Coverage Improver
           
           ## Job Description
           
           Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for the GitHub repository `${{ github.repository }}`. You're really good at all kinds of tasks. You're excellent at everything.
           
-          0. Read `.github/actions/daily-test-improver-coverage-steps/action.yml` if it exists. If it doesn't then:  
+          0. Read `.github/actions/daily-test-improver/coverage-steps/action.yml` if it exists. If it doesn't then:  
              a. Work how to replace it with the actual commands to build the project and run tests to produce a coverage report and upload it as an artifact. Do this by carefully reading any existing documentation and CI configuration files in the repository, and by looking at the build scripts, project files and so on in the repository. 
-             b. Edit the file `.github/actions/daily-test-improver-coverage-steps/action.yml` to replace the placeholder commands with the actual commands you found.
-             c. Make a pull request with these changes.
-             d. Try to run the steps you worked out manually and continue. If you can't get it to work, then create an issue describing the problem and exit.
+             b. Create the file `.github/actions/daily-test-improver/coverage-steps/action.yml` containing these steps, ensuring that the action.yml file is valid.
+             c. Make a pull request with these changes, with title "Updates to complete configuration of ${{ github.workflow }}", explaining that adding these build steps to your repo will make this workflow more reliable and effective.
+             d. Try to run through the steps you worked out manually. If the steps you added in the action.yml file need updating, then update the pull request you created in step c. If you can't get it to work, then create an issue describing the problem and exit. 
           
           1. Analyze the state of test coverage:
              a. Check the test coverage report generated and other detailed coverage information.
-             b. Check the most recent issue with title "Daily Test Coverage Improvement" (it may have been closed) and see what the status of things was there, including any recommendations.
+             b. Check the most recent issue with title starting with "${{ github.workflow }}" (it may have been closed) and see what the status of things was there, including any recommendations.
              
           2. Select multiple areas of relatively low coverage to work on that appear tractable for further test additions. Be detailed, looking at files, functions, branches, and lines of code that are not covered by tests. Look for areas where you can add meaningful tests that will improve coverage.
           
@@ -145,7 +144,7 @@ jobs:
              
              d. Do NOT include the coverage report or any generated coverage files in the pull request. Check this very carefully after creating the pull request by looking at the added files and removing them if they shouldn't be there. We've seen before that you have a tendency to add large coverage files that you shouldn't, so be careful here.
           
-             e. Create an issue with title starting with "Daily Test Coverage Improvement", summarizing
+             e. Create an issue with title starting with "${{ github.workflow }}", summarizing
              
              - the problems you found
              - the actions you took
@@ -253,7 +252,7 @@ jobs:
               engine_name: "Claude Code",
               model: "",
               version: "",
-              workflow_name: "Daily Test Coverage Improve",
+              workflow_name: "Daily Test Coverage Improver",
               experimental: false,
               supports_tools_whitelist: true,
               supports_http_transport: true,
@@ -358,7 +357,7 @@ jobs:
             GITHUB_AW_OUTPUT: ${{ env.GITHUB_AW_OUTPUT }}
           mcp_config: /tmp/mcp-config/mcp-servers.json
           prompt_file: /tmp/aw-prompts/prompt.txt
-          timeout_minutes: 15
+          timeout_minutes: 20
         env:
           GITHUB_AW_OUTPUT: ${{ env.GITHUB_AW_OUTPUT }}
       - name: Capture Agentic Action logs
@@ -366,13 +365,13 @@ jobs:
         run: |
           # Copy the detailed execution file from Agentic Action if available
           if [ -n "${{ steps.agentic_execution.outputs.execution_file }}" ] && [ -f "${{ steps.agentic_execution.outputs.execution_file }}" ]; then
-            cp ${{ steps.agentic_execution.outputs.execution_file }} /tmp/daily-test-coverage-improve.log
+            cp ${{ steps.agentic_execution.outputs.execution_file }} /tmp/daily-test-coverage-improver.log
           else
-            echo "No execution file output found from Agentic Action" >> /tmp/daily-test-coverage-improve.log
+            echo "No execution file output found from Agentic Action" >> /tmp/daily-test-coverage-improver.log
           fi
           
           # Ensure log file exists
-          touch /tmp/daily-test-coverage-improve.log
+          touch /tmp/daily-test-coverage-improver.log
       - name: Check if workflow-complete.txt exists, if so upload it
         id: check_file
         run: |
@@ -466,8 +465,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: daily-test-coverage-improve.log
-          path: /tmp/daily-test-coverage-improve.log
+          name: daily-test-coverage-improver.log
+          path: /tmp/daily-test-coverage-improver.log
           if-no-files-found: warn
       - name: Generate git patch
         if: always()
