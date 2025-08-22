@@ -21,7 +21,6 @@ jobs:
       checks: read
       contents: write
       issues: read
-      models: read
       pull-requests: write
       statuses: read
     outputs:
