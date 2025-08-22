@@ -5,6 +5,7 @@ on:
 permissions:
   contents: write # needed to create branches, files, and pull requests in this repo without a fork
   pull-requests: write # needed to create results pull request
+  actions: write # allow changes to workflow files
   models: read
   issues: read 
   actions: read
