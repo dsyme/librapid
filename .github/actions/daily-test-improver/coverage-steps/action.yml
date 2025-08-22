@@ -1,0 +1,61 @@
+name: "LibRapid Coverage Steps"
+description: "Build LibRapid with coverage, run tests, and generate coverage report"
+author: "Daily Test Coverage Improver"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Get latest CMake and ninja
+      uses: lukka/get-cmake@latest
+      
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.9"
+        
+    - name: Install Coverage Tools
+      shell: bash
+      run: |
+        sudo apt install lcov
+        sudo apt install gcovr
+        
+    - name: Configure and Build with Coverage
+      shell: bash
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Debug -DLIBRAPID_CODE_COV=on -DLIBRAPID_BUILD_EXAMPLES=on -DLIBRAPID_BUILD_TESTS=on -DLIBRAPID_USE_BLAS=ON -DLIBRAPID_GET_FFTW=on -DLIBRAPID_USE_MULTIPREC=on -DLIBRAPID_USE_OPENCL=off
+        cmake --build .
+      env:
+        CC: gcc-14
+        CXX: g++-14
+        
+    - name: Run Tests
+      shell: bash
+      run: |
+        cd build
+        ctest -C Debug --output-on-failure
+        
+    - name: Generate Coverage Report (HTML)
+      shell: bash
+      run: |
+        cd build
+        lcov --capture --directory . --output-file coverage.info
+        lcov --remove coverage.info '/usr/*' --output-file coverage_filtered.info
+        lcov --remove coverage_filtered.info '*/test/*' --output-file coverage_final.info
+        genhtml coverage_final.info --output-directory coverage_report
+        
+    - name: Generate Coverage Report (XML)
+      shell: bash
+      run: |
+        cd build
+        gcovr --xml-pretty --exclude-unreachable-branches --print-summary -o coverage.xml --root ..
+        
+    - name: Upload Coverage Report as Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: |
+          build/coverage_report/
+          build/coverage.xml
+          build/coverage_final.info
