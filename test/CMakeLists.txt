@@ -30,3 +30,7 @@ make_test(mathUtilities)
 make_test(set)
 
 make_test(sigmoid)
+
+# Daily Test Coverage Improver additions
+make_test(mathConstants)
+make_test(randomGeneration)
