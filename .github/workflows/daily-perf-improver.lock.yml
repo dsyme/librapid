@@ -2,7 +2,7 @@
 # To update this file, edit the corresponding .md file and run:
 #   gh aw compile
 #
-# Effective stop-time: 2025-08-25 23:40:54
+# Effective stop-time: 2025-08-25 23:43:17
 
 name: "Daily Perf Improver"
 on:
@@ -35,7 +35,7 @@ jobs:
       - continue-on-error: true
         id: build-steps
         name: Build the project ready for performance testing
-        uses: .github/actions/daily-perf-improver/build-steps
+        uses: ./.github/actions/daily-perf-improver/build-steps
       - name: Setup agent output
         id: setup_agent_output
         uses: actions/github-script@v7
@@ -88,7 +88,7 @@ jobs:
           WORKFLOW_NAME="Daily Perf Improver"
           
           # Check stop-time limit
-          STOP_TIME="2025-08-25 23:40:54"
+          STOP_TIME="2025-08-25 23:43:17"
           echo "Checking stop-time limit: $STOP_TIME"
           
           # Convert stop time to epoch seconds

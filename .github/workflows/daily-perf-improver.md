@@ -46,7 +46,7 @@ steps:
   - name: Checkout repository
     uses: actions/checkout@v3
   - name: Build the project ready for performance testing
-    uses: .github/actions/daily-perf-improver/build-steps
+    uses: ./.github/actions/daily-perf-improver/build-steps
     id: build-steps
     continue-on-error: true
 
