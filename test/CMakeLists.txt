@@ -28,5 +28,6 @@ make_test(vector)
 make_test(complex)
 make_test(mathUtilities)
 make_test(set)
+make_test(coreTraits)
 
 make_test(sigmoid)
