@@ -1,6 +1,9 @@
 #ifndef LIBRAPID_ARRAY_ASSIGN_OPS_HPP
 #define LIBRAPID_ARRAY_ASSIGN_OPS_HPP
 
+// Include memory utilities for prefetching
+#include "../utils/memUtils.hpp"
+
 namespace librapid {
 	// All assignment operators are forward declared in "forward.hpp" so they can be used
 	// elsewhere. They are defined here.
@@ -49,11 +52,31 @@ namespace librapid {
 										   function.shape());
 
 			if constexpr (allowVectorisation) {
-				for (int64_t index = 0; index < vectorSize; index += packetWidth) {
+				// Memory prefetching constants for optimal cache utilization
+				constexpr int64_t prefetchDistance = 64; // Cache line size
+				constexpr int64_t unrollFactor = 4;
+				const int64_t unrolledVectorSize = vectorSize - (vectorSize % (packetWidth * unrollFactor));
+
+				// Unrolled loop with prefetching for better performance
+				for (int64_t index = 0; index < unrolledVectorSize; index += packetWidth * unrollFactor) {
+					// Prefetch next iterations' data
+					if (index + prefetchDistance < vectorSize) {
+						prefetch<3>(&lhs.storage()[index + prefetchDistance]);
+					}
+
+					// Unrolled packet operations for better ILP
+					lhs.writePacket(index, function.packet(index));
+					lhs.writePacket(index + packetWidth, function.packet(index + packetWidth));
+					lhs.writePacket(index + 2 * packetWidth, function.packet(index + 2 * packetWidth));
+					lhs.writePacket(index + 3 * packetWidth, function.packet(index + 3 * packetWidth));
+				}
+
+				// Handle remaining vectorized elements
+				for (int64_t index = unrolledVectorSize; index < vectorSize; index += packetWidth) {
 					lhs.writePacket(index, function.packet(index));
 				}
 
-				// Assign the remaining elements
+				// Assign the remaining scalar elements
 				for (int64_t index = vectorSize; index < size; ++index) {
 					lhs.write(index, function.scalar(index));
 				}
@@ -109,11 +132,32 @@ namespace librapid {
 										   function.shape());
 
 			if constexpr (allowVectorisation) {
-				for (int64_t index = 0; index < vectorSize; index += packetWidth) {
-					lhs.writePacket(index, function.packet(index));
+				// Compile-time optimization strategies based on array size
+				if constexpr (elements <= 32) {
+					// Small arrays: Full unrolling for zero overhead
+#pragma unroll
+					for (int64_t index = 0; index < vectorSize; index += packetWidth) {
+						lhs.writePacket(index, function.packet(index));
+					}
+				} else if constexpr (elements <= 64) {
+					// Medium arrays: Partial unrolling
+#pragma unroll 4
+					for (int64_t index = 0; index < vectorSize; index += packetWidth) {
+						lhs.writePacket(index, function.packet(index));
+					}
+				} else {
+					// Large arrays: Memory prefetching optimization
+					constexpr int64_t prefetchDistance = 64;
+					for (int64_t index = 0; index < vectorSize; index += packetWidth) {
+						// Prefetch next cache line
+						if (index + prefetchDistance < vectorSize) {
+							prefetch<3>(&lhs.storage()[index + prefetchDistance]);
+						}
+						lhs.writePacket(index, function.packet(index));
+					}
 				}
 
-				// Assign the remaining elements
+				// Assign the remaining scalar elements
 				for (int64_t index = vectorSize; index < elements; ++index) {
 					lhs.write(index, function.scalar(index));
 				}
@@ -172,13 +216,19 @@ namespace librapid {
 										   function.shape());
 
 			if constexpr (allowVectorisation) {
+				// Parallel loop with memory prefetching for large datasets
 #pragma omp parallel for shared(vectorSize, lhs, function) default(none)                           \
   num_threads(int(global::numThreads))
 				for (int64_t index = 0; index < vectorSize; index += packetWidth) {
+					// Prefetch next cache line (safe in parallel context)
+					constexpr int64_t prefetchDistance = 128; // Larger distance for parallel access
+					if (index + prefetchDistance < vectorSize) {
+						prefetch<2>(&lhs.storage()[index + prefetchDistance]); // Lower locality for parallel
+					}
 					lhs.writePacket(index, function.packet(index));
 				}
 
-				// Assign the remaining elements
+				// Assign the remaining scalar elements
 				for (int64_t index = vectorSize; index < size; ++index) {
 					lhs.write(index, function.scalar(index));
 				}
