@@ -2,9 +2,9 @@
 # To update this file, edit the corresponding .md file and run:
 #   gh aw compile
 #
-# Effective stop-time: 2025-08-23 21:45:02
+# Effective stop-time: 2025-08-25 12:00:42
 
-name: "Daily Performance Improvement"
+name: "Daily Perf Improver"
 on:
   schedule:
   - cron: 0 2 * * 1-5
@@ -15,17 +15,16 @@ permissions: {}
 concurrency:
   group: "gh-aw-${{ github.workflow }}"
 
-run-name: "Daily Performance Improvement"
+run-name: "Daily Perf Improver"
 
 jobs:
-  daily-performance-improvement:
+  daily-perf-improver:
     runs-on: ubuntu-latest
     permissions:
       actions: read
       checks: read
       contents: write
       issues: write
-      models: read
       pull-requests: write
       statuses: read
     outputs:
@@ -33,8 +32,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: Build and produce benchmarking report
-        run: "# This step should build your project and produce a benchmarking report.\n# Replace with your actual commands.\necho \"Building project...\"\necho \"Benchmarking report generated.\"\n"
+      - continue-on-error: true
+        id: build-steps
+        name: Build the project ready for performance testing
+        uses: ./.github/actions/daily-perf-improver/build-steps
       - name: Setup agent output
         id: setup_agent_output
         uses: actions/github-script@v7
@@ -84,10 +85,10 @@ jobs:
         run: |
           set -e
           echo "Performing safety checks before executing agentic tools..."
-          WORKFLOW_NAME="Daily Performance Improvement"
+          WORKFLOW_NAME="Daily Perf Improver"
           
           # Check stop-time limit
-          STOP_TIME="2025-08-23 21:45:02"
+          STOP_TIME="2025-08-25 12:00:42"
           echo "Checking stop-time limit: $STOP_TIME"
           
           # Convert stop time to epoch seconds
@@ -115,22 +116,32 @@ jobs:
         run: |
           mkdir -p /tmp/aw-prompts
           cat > /tmp/aw-prompts/prompt.txt << 'EOF'
-          # Daily Performance Improvement
+          # Daily Perf Improver
           
           ## Job Description
           
           Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for the GitHub repository `${{ github.repository }}`. You're really good at all kinds of tasks. You're excellent at everything.
           
-          0. Read the markdown corresponding to the workflow file in the repository `${{ github.repository }}` in `.github/workflows/daily-perf-improve.md`. If the section already contains actual commands, then go to the next step. If the section "Build and run test to produce benchmarking report" still contains a placeholder, then:  
-             a. Work how to replace it with the actual commands to build the project and run tests to produce a benchmarking report and upload it as an artifact. 
-             b. Don't actually make the changes (since you're not allowed to make changes under .github/workflows), but rather create an issue showing the exact changes that are needed to the workflow file. Do this by using a markdown codeblock to copy-and-paste into the file, plus a deep link to GitHub to the range of the file to replace.
-             c. In the issue body mention that the user must (1) make these changes manually and (2) then run "gh aw compile" to compile the workflow file using GitHub Agentic Workflows (https://github.com/githubnext/gh-aw).
-             d. Also instruct them to remove this section from the markdown. 
-             e. Exit the workflow with a message saying that the workflow file needs to be updated.
+          0. Check if `.github/actions/daily-perf-improver/build-steps/action.yml` exists. If it does then continue to step 1. If it doesn't then we need to create it:
+             
+             a. Have a careful think about the CI commands needed to 
+                - install necessary build, profiling and micro-benchmarking tools
+                - build the project ready for performance testing 
+                
+                Do this by carefully reading any existing documentation and CI files in the repository that do similar things, and by looking at any build scripts, project files, dev guides and so on in the repository, and looking for some typical inputs that represent sample usage of the project.
+          
+             b. Create the file `.github/actions/daily-perf-improver/build-steps/action.yml` containing these steps, ensuring that the action.yml file is valid.
+          
+             c. Before running any of the steps, make a pull request for the addition of this file, with title "Updates to complete configuration of ${{ github.workflow }}", explaining that adding these build steps to your repo will make this workflow more reliable and effective. Encourage the maintainer to review the steps carefully to ensure they are appropriate for the project.
+             
+             d. Try to run through the steps you worked out manually one by one. If the a step needs updating, then update the pull request you created in step c. Continue through all the steps. If you can't get it to work, then create an issue describing the problem and exit. 
+             
+             e. Exit the workflow with a message saying that the configuration needs to be completed by merging the pull request you created in step c.
           
           1. Analyze the state of performance:
-             a. Check the most recent performance report in the repository. This may be in a file, an artifact, or a comment on a pull request or issue.
-             b. Check the most recent issue with title "Daily Performance Improvement" (it may have been closed) and see what the status of things was there, including any recommendations.
+             a. The repository should be in a state where the steps in `.github/actions/daily-perf-improver/build-steps/action.yml` have been run and is ready for performance testing, running micro-benchmarks etc. If necessary read this file.
+             b. Check the most recent issue with title starting with "${{ github.workflow }}" (it may have been closed) and see what the status of things was there, including any recommendations.
+             c. Check any existing open pull requests that are related to performance improvements especially any opened by you starting with title "${{ github.workflow }}".
              
           2. Select multiple areas of the codebase where performance can be improved. This could include:
              - Functions or methods that are slow
@@ -140,29 +151,43 @@ jobs:
              - Important routines that dominate performance
              - Code that can be vectorized or other standard techniques to improve performance
              - Any other areas that you identify as potential performance bottlenecks
+             - Determine if CPU, memory, I/O or other are the bottlenecks
           
-             Ensure that you have a good understanding of the code and the performance issues before proceeding.
+             You may want to profile existing code and typical inputs to determine bottlenecks.
+          
+             Ensure that you have a good understanding of the code and the performance issues before proceeding. Don't work on areas that overlap with any open pull requests you identified in step 1.
           
           3. For each area identified
           
-             a. Create a new branch and make changes to improve performance. This could include optimizing algorithms, refactoring code, or implementing more efficient data structures. Ensure that the changes are meaningful and have a measurable impact on performance.
-          
-             b. Once you have added the tests, run the test suite again to ensure that the existing tests pass and that overall performance has improved. Do not add changes that do not improve performance.
-          
-             c. Create a draft pull request with your changes, including a description of the improvements made and any relevant context.
+             a. Create a new branch.
              
-             d. Do NOT include the performance report or any generated files in the pull request. Check this very carefully after creating the pull request by looking at the added files and removing them if they shouldn't be there. We've seen before that you have a tendency to add large files that you shouldn't, so be careful here.
+             b. Think about a plan about how to measure and improve performance for individual units of work. This could include
+                - writing and running micro-benchmarks before and after changes
+                - optimizing algorithms
+                - implementing more efficient data structures
+                - refactoring code for better performance 
+                Ensure that the changes are likely to be useful, don't waste time on changes that are unlikely to help.
           
-             e. Create an issue with title starting with "Daily Performance Improvement", summarizing
+             c. Make the changes to improve performance. Ensure the code still works as expected and that any existing relevant tests pass. 
+          
+             d. After making the changes, measure their impact on performance by running individual benchmarks and comparing results. Benchmarking should be done in a way that is reliable and reproducible, though beware that because you're running in a virtualised environment wall-clock-time measurements may not be 100% accurate. If the changes do not improve performance, then consider reverting them or trying a different approach.
+          
+             e. Create a draft pull request with your changes, including a description of the improvements, details of the benchmark runs that show improvement and by how much, made and any relevant context. Do NOT include performance reports or any tool-generated files in the pull request. Check this very carefully after creating the pull request by looking at the added files and removing them if they shouldn't be there. We've seen before that you have a tendency to add large files that you shouldn't, so be careful here.
+          
+             f. Create an issue with title starting with "${{ github.workflow }}", summarizing succinctly but clearly:
              
              - the problems you found
+             - the approach you took to your work, including your todo list
              - the actions you took
-             - the changes in test coverage achieved
+             - the build and test steps you used
+             - the performance measurements you made and improvements achieved
+             - the changes made
+             - what did and didn't work
              - possible other areas for future improvement
              - include links to any issues you created or commented on, and any pull requests you created.
              - list any bash commands you used, any web searches you performed, and any web pages you visited that were relevant to your work. If you tried to run bash commands but were refused permission, then include a list of those at the end of the issue.
           
-          4. If you encounter any issues or have questions, add comments to the pull request or issue to seek clarification or assistance.
+          4. If you encounter any unexpected failures or have questions, add comments to the pull request or issue to seek clarification or assistance.
           
           5. If you are unable to improve performance in a particular area, add a comment explaining why and what you tried. If you have any relevant links or resources, include those as well.
           
@@ -261,7 +286,7 @@ jobs:
               engine_name: "Claude Code",
               model: "",
               version: "",
-              workflow_name: "Daily Performance Improvement",
+              workflow_name: "Daily Perf Improver",
               experimental: false,
               supports_tools_whitelist: true,
               supports_http_transport: true,
@@ -366,7 +391,7 @@ jobs:
             GITHUB_AW_OUTPUT: ${{ env.GITHUB_AW_OUTPUT }}
           mcp_config: /tmp/mcp-config/mcp-servers.json
           prompt_file: /tmp/aw-prompts/prompt.txt
-          timeout_minutes: 15
+          timeout_minutes: 30
         env:
           GITHUB_AW_OUTPUT: ${{ env.GITHUB_AW_OUTPUT }}
       - name: Capture Agentic Action logs
@@ -374,13 +399,13 @@ jobs:
         run: |
           # Copy the detailed execution file from Agentic Action if available
           if [ -n "${{ steps.agentic_execution.outputs.execution_file }}" ] && [ -f "${{ steps.agentic_execution.outputs.execution_file }}" ]; then
-            cp ${{ steps.agentic_execution.outputs.execution_file }} /tmp/daily-performance-improvement.log
+            cp ${{ steps.agentic_execution.outputs.execution_file }} /tmp/daily-perf-improver.log
           else
-            echo "No execution file output found from Agentic Action" >> /tmp/daily-performance-improvement.log
+            echo "No execution file output found from Agentic Action" >> /tmp/daily-perf-improver.log
           fi
           
           # Ensure log file exists
-          touch /tmp/daily-performance-improvement.log
+          touch /tmp/daily-perf-improver.log
       - name: Check if workflow-complete.txt exists, if so upload it
         id: check_file
         run: |
@@ -402,58 +427,139 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const fs = require('fs');
-            
-            // Sanitization function for adversarial LLM outputs
+            /**
+             * Sanitizes content for safe output in GitHub Actions
+             * @param {string} content - The content to sanitize
+             * @returns {string} The sanitized content
+             */
             function sanitizeContent(content) {
               if (!content || typeof content !== 'string') {
                 return '';
               }
-              
+              // Read allowed domains from environment variable
+              const allowedDomainsEnv = process.env.GITHUB_AW_ALLOWED_DOMAINS;
+              const defaultAllowedDomains = [
+                'github.com',
+                'github.io',
+                'githubusercontent.com',
+                'githubassets.com',
+                'github.dev',
+                'codespaces.new'
+              ];
+              const allowedDomains = allowedDomainsEnv
+                ? allowedDomainsEnv.split(',').map(d => d.trim()).filter(d => d)
+                : defaultAllowedDomains;
+              let sanitized = content;
+              // Neutralize @mentions to prevent unintended notifications
+              sanitized = neutralizeMentions(sanitized);
               // Remove control characters (except newlines and tabs)
-              let sanitized = content.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-              
+              sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+              // XML character escaping
+              sanitized = sanitized
+                .replace(/&/g, '&amp;')   // Must be first to avoid double-escaping
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&apos;');
+              // URI filtering - replace non-https protocols with "(redacted)"
+              // Step 1: Temporarily mark HTTPS URLs to protect them
+              sanitized = sanitizeUrlProtocols(sanitized);
+              // Domain filtering for HTTPS URIs
+              // Match https:// URIs and check if domain is in allowlist
+              sanitized = sanitizeUrlDomains(sanitized);
               // Limit total length to prevent DoS (0.5MB max)
               const maxLength = 524288;
               if (sanitized.length > maxLength) {
                 sanitized = sanitized.substring(0, maxLength) + '\n[Content truncated due to length]';
               }
-              
               // Limit number of lines to prevent log flooding (65k max)
               const lines = sanitized.split('\n');
               const maxLines = 65000;
               if (lines.length > maxLines) {
                 sanitized = lines.slice(0, maxLines).join('\n') + '\n[Content truncated due to line count]';
               }
-              
-              
               // Remove ANSI escape sequences
               sanitized = sanitized.replace(/\x1b\[[0-9;]*[mGKH]/g, '');
-              
+              // Neutralize common bot trigger phrases
+              sanitized = neutralizeBotTriggers(sanitized);
               // Trim excessive whitespace
               return sanitized.trim();
+              /**
+               * Remove unknown domains
+               * @param {string} s - The string to process
+               * @returns {string} The string with unknown domains redacted
+               */
+              function sanitizeUrlDomains(s) {
+                s = s.replace(/\bhttps:\/\/([^\/\s\])}'"<>&\x00-\x1f]+)/gi, (match, domain) => {
+                  // Extract the hostname part (before first slash, colon, or other delimiter)
+                  const hostname = domain.split(/[\/:\?#]/)[0].toLowerCase();
+                  // Check if this domain or any parent domain is in the allowlist
+                  const isAllowed = allowedDomains.some(allowedDomain => {
+                    const normalizedAllowed = allowedDomain.toLowerCase();
+                    return hostname === normalizedAllowed || hostname.endsWith('.' + normalizedAllowed);
+                  });
+                  return isAllowed ? match : '(redacted)';
+                });
+                return s;
+              }
+              /**
+               * Remove unknown protocols except https
+               * @param {string} s - The string to process
+               * @returns {string} The string with non-https protocols redacted
+               */
+              function sanitizeUrlProtocols(s) {
+                // Match both protocol:// and protocol: patterns
+                // This covers URLs like https://example.com, javascript:alert(), mailto:user@domain.com, etc.
+                return s.replace(/\b(\w+):(?:\/\/)?[^\s\])}'"<>&\x00-\x1f]+/gi, (match, protocol) => {
+                  // Allow https (case insensitive), redact everything else
+                  return protocol.toLowerCase() === 'https' ? match : '(redacted)';
+                });
+              }
+              /**
+               * Neutralizes @mentions by wrapping them in backticks
+               * @param {string} s - The string to process
+               * @returns {string} The string with neutralized mentions
+               */
+              function neutralizeMentions(s) {
+                // Replace @name or @org/team outside code with `@name`
+                return s.replace(/(^|[^\w`])@([A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?(?:\/[A-Za-z0-9._-]+)?)/g,
+                  (_m, p1, p2) => `${p1}\`@${p2}\``);
+              }
+              /**
+               * Neutralizes bot trigger phrases by wrapping them in backticks
+               * @param {string} s - The string to process
+               * @returns {string} The string with neutralized bot triggers
+               */
+              function neutralizeBotTriggers(s) {
+                // Neutralize common bot trigger phrases like "fixes #123", "closes #asdfs", etc.
+                return s.replace(/\b(fixes?|closes?|resolves?|fix|close|resolve)\s+#(\w+)/gi,
+                  (match, action, ref) => `\`${action} #${ref}\``);
+              }
             }
-            
-            const outputFile = process.env.GITHUB_AW_OUTPUT;
-            if (!outputFile) {
-              console.log('GITHUB_AW_OUTPUT not set, no output to collect');
-              core.setOutput('output', '');
-              return;
+            async function main() {
+              const fs = require("fs");
+              const outputFile = process.env.GITHUB_AW_OUTPUT;
+              if (!outputFile) {
+                console.log('GITHUB_AW_OUTPUT not set, no output to collect');
+                core.setOutput('output', '');
+                return;
+              }
+              if (!fs.existsSync(outputFile)) {
+                console.log('Output file does not exist:', outputFile);
+                core.setOutput('output', '');
+                return;
+              }
+              const outputContent = fs.readFileSync(outputFile, 'utf8');
+              if (outputContent.trim() === '') {
+                console.log('Output file is empty');
+                core.setOutput('output', '');
+              } else {
+                const sanitizedContent = sanitizeContent(outputContent);
+                console.log('Collected agentic output (sanitized):', sanitizedContent.substring(0, 200) + (sanitizedContent.length > 200 ? '...' : ''));
+                core.setOutput('output', sanitizedContent);
+              }
             }
-            if (!fs.existsSync(outputFile)) {
-              console.log('Output file does not exist:', outputFile);
-              core.setOutput('output', '');
-              return;
-            }
-            const outputContent = fs.readFileSync(outputFile, 'utf8');
-            if (outputContent.trim() === '') {
-              console.log('Output file is empty');
-              core.setOutput('output', '');
-            } else {
-              const sanitizedContent = sanitizeContent(outputContent);
-              console.log('Collected agentic output (sanitized):', sanitizedContent.substring(0, 200) + (sanitizedContent.length > 200 ? '...' : ''));
-              core.setOutput('output', sanitizedContent);
-            }
+            await main();
       - name: Print agent output to step summary
         env:
           GITHUB_AW_OUTPUT: ${{ env.GITHUB_AW_OUTPUT }}
@@ -474,8 +580,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: daily-performance-improvement.log
-          path: /tmp/daily-performance-improvement.log
+          name: daily-perf-improver.log
+          path: /tmp/daily-perf-improver.log
           if-no-files-found: warn
       - name: Generate git patch
         if: always()
