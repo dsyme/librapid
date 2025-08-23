@@ -2,7 +2,7 @@
 # To update this file, edit the corresponding .md file and run:
 #   gh aw compile
 #
-# Effective stop-time: 2025-08-25 23:21:04
+# Effective stop-time: 2025-08-25 23:24:07
 
 name: "Daily Perf Improver"
 on:
@@ -88,7 +88,7 @@ jobs:
           WORKFLOW_NAME="Daily Perf Improver"
           
           # Check stop-time limit
-          STOP_TIME="2025-08-25 23:21:04"
+          STOP_TIME="2025-08-25 23:24:07"
           echo "Checking stop-time limit: $STOP_TIME"
           
           # Convert stop time to epoch seconds
@@ -133,6 +133,10 @@ jobs:
                   - Is perf I/O, CPU or Storage bound?
                   - What do the repo maintainers care about most w.r.t. perf.?
                   - What are realistic goals for Round 1, 2, 3 of perf improvement?
+                  - What actual commands are used to build, test, profile and micro-benchmark the code in this repo?
+                  - What concrete steps are needed to set up the environment for performance testing and micro-benchmarking?
+                  - What existing documentation is there about performance in this repo?
+                  - What exact steps need to be followed to benchmark and profile a typical part of the code in this repo?
            
                 - Use this research to write a file `.github/daily-perf-improver.notes.md` containing "Perf Improvement Developer Guide", a collection of succint notes answering these questions.
           
