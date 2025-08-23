@@ -39,8 +39,7 @@ tools:
       NotebookEdit:
       WebFetch:
       WebSearch:
-      # Configure bash build commands here, or enabled the agentics/shared/build-tools.md file at the end of this file and edit there
-      #Bash: [":*"]
+      Bash: [":*"]
 
 steps:
   - name: Checkout repository
