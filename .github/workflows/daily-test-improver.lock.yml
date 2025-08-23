@@ -2,7 +2,7 @@
 # To update this file, edit the corresponding .md file and run:
 #   gh aw compile
 #
-# Effective stop-time: 2025-08-25 16:58:55
+# Effective stop-time: 2025-08-25 16:59:40
 
 name: "Daily Test Coverage Improver"
 on:
@@ -88,7 +88,7 @@ jobs:
           WORKFLOW_NAME="Daily Test Coverage Improver"
           
           # Check stop-time limit
-          STOP_TIME="2025-08-25 16:58:55"
+          STOP_TIME="2025-08-25 16:59:40"
           echo "Checking stop-time limit: $STOP_TIME"
           
           # Convert stop time to epoch seconds
@@ -136,7 +136,7 @@ jobs:
           
           1. Analyze the state of test coverage:
              
-             a. The repository should be in a state where the steps in `.github/actions/daily-test-improver/coverage-steps/action.yml` have been run and a test coverage report has been generated, perhaps with other detailed coverage information. Find and analyze the coverage report. If necessary look at the steps in `.github/actions/daily-test-improver/coverage-steps/action.yml` to work out where it should be. If you can't find it, then create an issue describing the problem and exit.
+             a. The repository should be in a state where the steps in `.github/actions/daily-test-improver/coverage-steps/action.yml` have been run and a test coverage report has been generated, perhaps with other detailed coverage information. Look at the steps in `.github/actions/daily-test-improver/coverage-steps/action.yml` to work out where the coverage report should be, and read it. If you can't find the coverage report, work out why the build or coverage generation failed, then create an issue describing the problem and exit. If you know how to fix the problem, then do so in a pull request first, and then exit the workflow so that the workflow can be re-run once the PR is merged.
           
              b. Check the most recent issue with title starting with "${{ github.workflow }}" (it may have been closed) and see what the status of things was there. These are your notes from last time you did your work, and may include useful recommendations for future areas to work on.
           
@@ -171,14 +171,7 @@ jobs:
           
           > NOTE: Never make direct pushes to the default (main) branch. Always create a pull request. The default (main) branch is protected and you will not be able to push to it.
           
-          
-          <!-- Error: invalid frontmatter in included file /home/dsyme/librapid/.github/workflows/flight-school/shared/tool-refused.md: .github/workflows/flight-school/shared/tool-refused.md:1:1: error: got null, want object
-          1 | ---
-              ^
-          
-          hint: Check the YAML frontmatter against the schema requirements
-           -->
-          
+          > NOTE: If you are refused permission to run an MCP tool or particular 'bash' commands, or need to request access to other tools or resources, then please include a request for access in the output, explaining the exact name of the tool and/or the exact prefix of bash commands needed, or other resources you need access to.
           
           > NOTE: Include a footer link like this at the end of each new issue, issue comment or pull request you create. Do this in addition to any other footers you are instructed to include.
           
@@ -197,7 +190,6 @@ jobs:
             - the exact bash commands you executed
             - the exact web searches you performed
             - the exact MCP function/tool calls you used
-            - if any MCP or other tools were refused, then the exact name of the tool and/or the exact prefix of bash commands needed
           
           If any step fails, then make this really obvious with emoji. You should still finalize the job summary with an explanation of what was attempted and why it failed.
           
@@ -235,9 +227,9 @@ jobs:
           - List labels: `gh label list ...`
           - View label: `gh label view <label-name> ...`
           
-          <!-- You can whitelist tools in the shared/build-tools.md file, and include it here. -->
+          <!-- You can whitelist tools in the agentics/shared/build-tools.md file, and include it here. -->
           <!-- This should be done with care, as tools may  -->
-          <!-- include flight-school/shared/build-tools.md -->
+          <!-- include agentics/shared/build-tools.md -->
           
           
           ---
@@ -294,7 +286,9 @@ jobs:
         uses: anthropics/claude-code-base-action@v0.0.56
         with:
           # Allowed tools (sorted):
-          # - Bash
+          # - Bash(echo:*)
+          # - Bash(gh label list:*)
+          # - Bash(gh label view:*)
           # - Edit
           # - Glob
           # - Grep
@@ -360,14 +354,14 @@ jobs:
           # - mcp__github__search_users
           # - mcp__github__update_issue
           # - mcp__github__update_pull_request
-          allowed_tools: "Bash,Edit,Glob,Grep,LS,MultiEdit,NotebookEdit,NotebookRead,Read,Task,WebFetch,WebSearch,Write,mcp__github__add_issue_comment,mcp__github__create_branch,mcp__github__create_issue,mcp__github__create_or_update_file,mcp__github__create_pull_request,mcp__github__delete_file,mcp__github__download_workflow_run_artifact,mcp__github__get_code_scanning_alert,mcp__github__get_commit,mcp__github__get_dependabot_alert,mcp__github__get_discussion,mcp__github__get_discussion_comments,mcp__github__get_file_contents,mcp__github__get_issue,mcp__github__get_issue_comments,mcp__github__get_job_logs,mcp__github__get_me,mcp__github__get_notification_details,mcp__github__get_pull_request,mcp__github__get_pull_request_comments,mcp__github__get_pull_request_diff,mcp__github__get_pull_request_files,mcp__github__get_pull_request_reviews,mcp__github__get_pull_request_status,mcp__github__get_secret_scanning_alert,mcp__github__get_tag,mcp__github__get_workflow_run,mcp__github__get_workflow_run_logs,mcp__github__get_workflow_run_usage,mcp__github__list_branches,mcp__github__list_code_scanning_alerts,mcp__github__list_commits,mcp__github__list_dependabot_alerts,mcp__github__list_discussion_categories,mcp__github__list_discussions,mcp__github__list_issues,mcp__github__list_notifications,mcp__github__list_pull_requests,mcp__github__list_secret_scanning_alerts,mcp__github__list_tags,mcp__github__list_workflow_jobs,mcp__github__list_workflow_run_artifacts,mcp__github__list_workflow_runs,mcp__github__list_workflows,mcp__github__push_files,mcp__github__search_code,mcp__github__search_issues,mcp__github__search_orgs,mcp__github__search_pull_requests,mcp__github__search_repositories,mcp__github__search_users,mcp__github__update_issue,mcp__github__update_pull_request"
+          allowed_tools: "Bash(echo:*),Bash(gh label list:*),Bash(gh label view:*),Edit,Glob,Grep,LS,MultiEdit,NotebookEdit,NotebookRead,Read,Task,WebFetch,WebSearch,Write,mcp__github__add_issue_comment,mcp__github__create_branch,mcp__github__create_issue,mcp__github__create_or_update_file,mcp__github__create_pull_request,mcp__github__delete_file,mcp__github__download_workflow_run_artifact,mcp__github__get_code_scanning_alert,mcp__github__get_commit,mcp__github__get_dependabot_alert,mcp__github__get_discussion,mcp__github__get_discussion_comments,mcp__github__get_file_contents,mcp__github__get_issue,mcp__github__get_issue_comments,mcp__github__get_job_logs,mcp__github__get_me,mcp__github__get_notification_details,mcp__github__get_pull_request,mcp__github__get_pull_request_comments,mcp__github__get_pull_request_diff,mcp__github__get_pull_request_files,mcp__github__get_pull_request_reviews,mcp__github__get_pull_request_status,mcp__github__get_secret_scanning_alert,mcp__github__get_tag,mcp__github__get_workflow_run,mcp__github__get_workflow_run_logs,mcp__github__get_workflow_run_usage,mcp__github__list_branches,mcp__github__list_code_scanning_alerts,mcp__github__list_commits,mcp__github__list_dependabot_alerts,mcp__github__list_discussion_categories,mcp__github__list_discussions,mcp__github__list_issues,mcp__github__list_notifications,mcp__github__list_pull_requests,mcp__github__list_secret_scanning_alerts,mcp__github__list_tags,mcp__github__list_workflow_jobs,mcp__github__list_workflow_run_artifacts,mcp__github__list_workflow_runs,mcp__github__list_workflows,mcp__github__push_files,mcp__github__search_code,mcp__github__search_issues,mcp__github__search_orgs,mcp__github__search_pull_requests,mcp__github__search_repositories,mcp__github__search_users,mcp__github__update_issue,mcp__github__update_pull_request"
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude_env: |
             GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             GITHUB_AW_OUTPUT: ${{ env.GITHUB_AW_OUTPUT }}
           mcp_config: /tmp/mcp-config/mcp-servers.json
           prompt_file: /tmp/aw-prompts/prompt.txt
-          timeout_minutes: 20
+          timeout_minutes: 30
         env:
           GITHUB_AW_OUTPUT: ${{ env.GITHUB_AW_OUTPUT }}
       - name: Capture Agentic Action logs
