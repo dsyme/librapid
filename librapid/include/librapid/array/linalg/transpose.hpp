@@ -235,10 +235,47 @@ namespace librapid {
 
 	namespace detail {
 		namespace cpu {
+			// Cache-oblivious recursive transpose for large matrices
+			template<typename Scalar, typename Alpha>
+			LIBRAPID_ALWAYS_INLINE void
+			cacheObliviousTranspose(Scalar *__restrict out, const Scalar *__restrict in, 
+									int64_t rows, int64_t cols, int64_t inRowStride, int64_t outRowStride,
+									Alpha alpha, int64_t threshold = 64) {
+				// Base case: use direct transpose for small blocks
+				if (rows <= threshold && cols <= threshold) {
+					for (int64_t i = 0; i < rows; ++i) {
+						for (int64_t j = 0; j < cols; ++j) {
+							out[j * outRowStride + i] = in[i * inRowStride + j] * alpha;
+						}
+					}
+					return;
+				}
+				
+				// Recursive case: divide the matrix
+				if (rows >= cols) {
+					// Split along rows
+					int64_t mid = rows / 2;
+					cacheObliviousTranspose(out, in, mid, cols, inRowStride, outRowStride, alpha, threshold);
+					cacheObliviousTranspose(out + mid, in + mid * inRowStride, rows - mid, cols, inRowStride, outRowStride, alpha, threshold);
+				} else {
+					// Split along columns
+					int64_t mid = cols / 2;
+					cacheObliviousTranspose(out + mid * outRowStride, in + mid, rows, mid, inRowStride, outRowStride, alpha, threshold);
+					cacheObliviousTranspose(out + (cols - mid) * outRowStride, in + (cols - mid), rows, cols - mid, inRowStride, outRowStride, alpha, threshold);
+				}
+			}
+
 			template<typename Scalar, typename Alpha>
 			LIBRAPID_ALWAYS_INLINE void
 			transposeImpl(Scalar *__restrict out, const Scalar *__restrict in, int64_t rows,
 						  int64_t cols, Alpha alpha, int64_t blockSize) {
+				// Use cache-oblivious algorithm for very large matrices
+				const int64_t largeMatrixThreshold = 2048 * 2048; // 4M elements
+				if (rows * cols > largeMatrixThreshold) {
+					cacheObliviousTranspose(out, in, rows, cols, cols, rows, alpha);
+					return;
+				}
+
 #if !defined(LIBRAPID_OPTIMISE_SMALL_ARRAYS)
 				if (rows * cols > global::multithreadThreshold) {
 #	pragma omp parallel for shared(rows, cols, blockSize, in, out, alpha) default(none)           \
@@ -612,8 +649,19 @@ namespace librapid {
 
 		template<typename T>
 		auto Transpose<T>::scalar(int64_t index) const -> auto {
-			// TODO: This is a heinously inefficient way of doing this. Fix it.
-			return eval().scalar(index);
+			// Optimized scalar access without full matrix evaluation
+			// Convert linear index to transposed coordinates
+			auto outputCoords = m_outputShape.coords(index);
+			
+			// Apply inverse transpose to get original coordinates
+			ShapeType originalCoords = ShapeType::zeros(m_inputShape.ndim());
+			for (size_t i = 0; i < m_inputShape.ndim(); i++) {
+				originalCoords[m_axes[i]] = outputCoords[i];
+			}
+			
+			// Get linear index in original array and return scaled value
+			int64_t originalIndex = m_inputShape.index(originalCoords);
+			return m_array.scalar(originalIndex) * m_alpha;
 		}
 
 		template<typename T>
