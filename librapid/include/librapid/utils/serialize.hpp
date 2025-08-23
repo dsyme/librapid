@@ -1,11 +1,10 @@
 #ifndef LIBRAPID_UTILS_SERIALIZE_HPP
 #define LIBRAPID_UTILS_SERIALIZE_HPP
 
-#include <fstream>
-
-namespace librapid::serialize {
+namespace librapid {
 	namespace detail {
-		inline std::ios::openmode fileBinMode(const std::string &path) {
+		static std::ios_base::openmode getFileMode(const std::string &path) {
+			// Check if the file is binary
 			if (path.find(".bin") != std::string::npos) {
 				return std::ios::out | std::ios::binary;
 			} else {
@@ -16,10 +15,10 @@ namespace librapid::serialize {
 
 	template<typename T>
 	struct SerializerImpl {
-		// Used to ensure that the type is the same when deserializing
+		// Optimized type hashing without runtime string operations
 		LIBRAPID_NODISCARD static size_t hasher() {
-			auto type	= std::string(typetraits::typeName<T>());
-			size_t hash = std::hash<std::string> {}(type);
+			// Use type_index for consistent, fast type hashing (avoids string construction)
+			static const size_t hash = std::hash<std::type_index>{}(std::type_index(typeid(T)));
 			return hash;
 		}
 
@@ -43,60 +42,68 @@ namespace librapid::serialize {
 			memcpy(&obj, data.data(), sizeof(T));
 			return obj;
 		}
+
+		LIBRAPID_NODISCARD static void serialize(const T &obj, const std::string &path) {
+			auto data = serialize(obj);
+			std::ofstream file(path, detail::getFileMode(path));
+			file.write(reinterpret_cast<const char *>(data.data()), (int64_t)data.size());
+			file.close();
+		}
+
+		LIBRAPID_NODISCARD static T deserialize(const std::string &path) {
+			std::ifstream file(path, std::ios::in | std::ios::binary);
+			file.seekg(0, std::ios::end);
+			size_t fileSize = file.tellg();
+			file.seekg(0, std::ios::beg);
+			std::vector<uint8_t> data(fileSize);
+			file.read(reinterpret_cast<char *>(data.data()), (int64_t)fileSize);
+			file.close();
+			return deserialize(data);
+		}
+
+		LIBRAPID_NODISCARD static void serialize(const T &obj, std::ofstream &file) {
+			auto data = serialize(obj);
+			file.write(reinterpret_cast<const char *>(data.data()), (int64_t)data.size());
+		}
+
+		LIBRAPID_NODISCARD static T deserialize(std::ifstream &file) {
+			// Get the size of the type + hash
+			size_t dataSize = sizeof(T) + sizeof(size_t);
+			std::vector<uint8_t> data(dataSize);
+			file.read(reinterpret_cast<char *>(data.data()), (int64_t)dataSize);
+			return deserialize(data);
+		}
 	};
 
 	template<typename T>
-	class Serializer {
-	public:
-		Serializer() = default;
+	std::vector<uint8_t> serialize(const T &obj) {
+		return SerializerImpl<T>::serialize(obj);
+	}
 
-		explicit Serializer(const T &obj) : m_data(SerializerImpl<T>::serialize(obj)) {}
+	template<typename T>
+	T deserialize(const std::vector<uint8_t> &data) {
+		return SerializerImpl<T>::deserialize(data);
+	}
 
-		Serializer(const Serializer<T> &other) = default;
-		Serializer(Serializer<T> &&other)	   = default;
+	template<typename T>
+	void serialize(const T &obj, const std::string &path) {
+		SerializerImpl<T>::serialize(obj, path);
+	}
 
-		Serializer<T> &operator=(const Serializer<T> &other) = default;
-		Serializer<T> &operator=(Serializer<T> &&other)		 = default;
+	template<typename T>
+	T deserialize(const std::string &path) {
+		return SerializerImpl<T>::deserialize(path);
+	}
 
-		~Serializer() = default;
+	template<typename T>
+	void serialize(const T &obj, std::ofstream &file) {
+		SerializerImpl<T>::serialize(obj, file);
+	}
 
-		LIBRAPID_NODISCARD const std::vector<uint8_t> &data() const { return m_data; }
-		LIBRAPID_NODISCARD std::vector<uint8_t> &data() { return m_data; }
-
-		void serialize(const T &obj) { m_data = SerializerImpl<T>::serialize(obj); }
-		LIBRAPID_NODISCARD T deserialize() const { return SerializerImpl<T>::deserialize(m_data); }
-
-		LIBRAPID_NODISCARD bool write(std::fstream &file) const {
-			file.write(reinterpret_cast<const char *>(m_data.data()), m_data.size());
-			return file.good();
-		}
-
-		LIBRAPID_NODISCARD bool write(const std::string &path) const {
-			std::fstream file(path, std::ios::out | detail::fileBinMode(path));
-			bool ret = write(file);
-			file.close();
-			return ret;
-		}
-
-		LIBRAPID_NODISCARD bool read(std::fstream &file) {
-			file.seekg(0, std::ios::end);
-			if (file.tellg() == -1) return false;
-			m_data.resize(file.tellg());
-			file.seekg(0, std::ios::beg);
-			file.read(reinterpret_cast<char *>(m_data.data()), m_data.size());
-			return file.good();
-		}
-
-		LIBRAPID_NODISCARD bool read(const std::string &path) {
-			std::fstream f(path, std::ios::in | detail::fileBinMode(path));
-			bool ret = read(f);
-			f.close();
-			return ret;
-		}
-
-	private:
-		std::vector<uint8_t> m_data;
-	};
-} // namespace librapid::serialize
+	template<typename T>
+	T deserialize(std::ifstream &file) {
+		return SerializerImpl<T>::deserialize(file);
+	}
+} // namespace librapid
 
 #endif // LIBRAPID_UTILS_SERIALIZE_HPP
