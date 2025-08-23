@@ -19,61 +19,101 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            cc: ../llvm/bin/clang
-            cxx: ../llvm/bin/clang++
-            clangVer: "16.0"
-            blas: off
-            getBlas: off
-            fftw: off
-            mpfr: on
-            cpp: 20
-            pretty: "LibRapid_Ubuntu_Clang_C++20_MPFR"
+          # - os: ubuntu-latest
+          #   cc: ../llvm/bin/clang
+          #   cxx: ../llvm/bin/clang++
+          #   clangVer: "16.0"
+          #   blas: off
+          #   getBlas: off
+          #   fftw: off
+          #   mpfr: on
+          #   cpp: 20
+          #   pretty: "LibRapid_Ubuntu_Clang_C++20_MPFR"
+
+          # - os: ubuntu-latest
+          #   cc: ../llvm/bin/clang
+          #   cxx: ../llvm/bin/clang++
+          #   clangVer: "16.0"
+          #   blas: on
+          #   getBlas: on
+          #   fftw: on
+          #   mpfr: on
+          #   cpp: 20
+          #   pretty: "LibRapid_Ubuntu_Clang_C++20_BLAS_FFTW_MPFR"
+
+          # - os: ubuntu-latest
+          #   cc: gcc-13
+          #   cxx: g++-13
+          #   blas: off
+          #   getBlas: off
+          #   fftw: off
+          #   mpfr: on
+          #   cpp: 20
+          #   pretty: "LibRapid_Ubuntu_Clang_C++20_MPFR"
+
+          # - os: ubuntu-latest
+          #   cc: gcc-13
+          #   cxx: g++-13
+          #   blas: on
+          #   getBlas: on
+          #   fftw: on
+          #   mpfr: on
+          #   cpp: 20
+          #   pretty: "LibRapid_Ubuntu_Clang_C++20_BLAS_FFTW_MPFR"
+
+          # - os: ubuntu-latest
+          #   cc: gcc-13
+          #   cxx: g++-13
+          #   blas: off
+          #   getBlas: off
+          #   fftw: off
+          #   mpfr: on
+          #   cpp: 23
+          #   pretty: "LibRapid_Ubuntu_Clang_C++23_MPFR"
+
+          # - os: ubuntu-latest
+          #   cc: gcc-13
+          #   cxx: g++-13
+          #   blas: on
+          #   getBlas: on
+          #   fftw: on
+          #   mpfr: on
+          #   cpp: 23
+          #   pretty: "LibRapid_Ubuntu_Clang_C++23_BLAS_FFTW_MPFR"
+
+          # - os: ubuntu-latest
+          #   cc: gcc-14
+          #   cxx: g++-14
+          #   blas: off
+          #   getBlas: off
+          #   fftw: off
+          #   mpfr: on
+          #   cpp: 20
+          #   pretty: "LibRapid_Ubuntu_Clang_C++20_MPFR"
+
+          # - os: ubuntu-latest
+          #   cc: gcc-14
+          #   cxx: g++-14
+          #   blas: on
+          #   getBlas: on
+          #   fftw: on
+          #   mpfr: on
+          #   cpp: 20
+          #   pretty: "LibRapid_Ubuntu_Clang_C++20_BLAS_FFTW_MPFR"
+
+          # - os: ubuntu-latest
+          #   cc: gcc-14
+          #   cxx: g++-14
+          #   blas: off
+          #   getBlas: off
+          #   fftw: off
+          #   mpfr: on
+          #   cpp: 23
+          #   pretty: "LibRapid_Ubuntu_Clang_C++23_MPFR"
 
           - os: ubuntu-latest
-            cc: ../llvm/bin/clang
-            cxx: ../llvm/bin/clang++
-            clangVer: "16.0"
-            blas: on
-            getBlas: on
-            fftw: on
-            mpfr: on
-            cpp: 20
-            pretty: "LibRapid_Ubuntu_Clang_C++20_BLAS_FFTW_MPFR"
-
-          - os: ubuntu-latest
-            cc: gcc-13
-            cxx: g++-13
-            blas: off
-            getBlas: off
-            fftw: off
-            mpfr: on
-            cpp: 20
-            pretty: "LibRapid_Ubuntu_Clang_C++20_MPFR"
-
-          - os: ubuntu-latest
-            cc: gcc-13
-            cxx: g++-13
-            blas: on
-            getBlas: on
-            fftw: on
-            mpfr: on
-            cpp: 20
-            pretty: "LibRapid_Ubuntu_Clang_C++20_BLAS_FFTW_MPFR"
-
-          - os: ubuntu-latest
-            cc: gcc-13
-            cxx: g++-13
-            blas: off
-            getBlas: off
-            fftw: off
-            mpfr: on
-            cpp: 23
-            pretty: "LibRapid_Ubuntu_Clang_C++23_MPFR"
-
-          - os: ubuntu-latest
-            cc: gcc-13
-            cxx: g++-13
+            cc: gcc-14
+            cxx: g++-14
             blas: on
             getBlas: on
             fftw: on
@@ -81,191 +121,151 @@ jobs:
             cpp: 23
             pretty: "LibRapid_Ubuntu_Clang_C++23_BLAS_FFTW_MPFR"
 
-          - os: ubuntu-latest
-            cc: gcc-14
-            cxx: g++-14
-            blas: off
-            getBlas: off
-            fftw: off
-            mpfr: on
-            cpp: 20
-            pretty: "LibRapid_Ubuntu_Clang_C++20_MPFR"
+          # - os: macos-latest
+          #   cc: ../llvm/bin/clang
+          #   cxx: ../llvm/bin/clang++
+          #   clangVer: "15.0"
+          #   blas: off
+          #   getBlas: off
+          #   fftw: off
+          #   mpfr: on
+          #   cpp: 20
+          #   pretty: "LibRapid_MacOS_Clang++_C++20_MPFR"
 
-          - os: ubuntu-latest
-            cc: gcc-14
-            cxx: g++-14
-            blas: on
-            getBlas: on
-            fftw: on
-            mpfr: on
-            cpp: 20
-            pretty: "LibRapid_Ubuntu_Clang_C++20_BLAS_FFTW_MPFR"
+          # - os: macos-latest
+          #   cc: ../llvm/bin/clang
+          #   cxx: ../llvm/bin/clang++
+          #   clangVer: "15.0"
+          #   blas: on
+          #   getBlas: off # Included with XCode
+          #   fftw: on
+          #   mpfr: on
+          #   cpp: 20
+          #   pretty: "LibRapid_MacOS_Clang++_C++20_BLAS_FFTW_MPFR"
 
-          - os: ubuntu-latest
-            cc: gcc-14
-            cxx: g++-14
-            blas: off
-            getBlas: off
-            fftw: off
-            mpfr: on
-            cpp: 23
-            pretty: "LibRapid_Ubuntu_Clang_C++23_MPFR"
+          # - os: macos-latest
+          #   cc: gcc-14
+          #   cxx: g++-14
+          #   blas: off
+          #   getBlas: off
+          #   fftw: off
+          #   mpfr: on
+          #   cpp: 20
+          #   pretty: "LibRapid_MacOS_GCC-14_C++20_MPFR"
 
-          - os: ubuntu-latest
-            cc: gcc-14
-            cxx: g++-14
-            blas: on
-            getBlas: on
-            fftw: on
-            mpfr: on
-            cpp: 23
-            pretty: "LibRapid_Ubuntu_Clang_C++23_BLAS_FFTW_MPFR"
+          # - os: macos-latest
+          #   cc: gcc-14
+          #   cxx: g++-14
+          #   blas: on # Accelerate requires clang so we get blas
+          #   getBlas: on
+          #   fftw: on
+          #   mpfr: on
+          #   cpp: 20
+          #   pretty: "LibRapid_MacOS_GCC-14_C++20_BLAS_FFTW_MPFR"
 
-          - os: macos-latest
-            cc: ../llvm/bin/clang
-            cxx: ../llvm/bin/clang++
-            clangVer: "15.0"
-            blas: off
-            getBlas: off
-            fftw: off
-            mpfr: on
-            cpp: 20
-            pretty: "LibRapid_MacOS_Clang++_C++20_MPFR"
+          # - os: macos-latest
+          #   cc: gcc-14
+          #   cxx: g++-14
+          #   blas: off
+          #   getBlas: off
+          #   fftw: off
+          #   mpfr: on
+          #   cpp: 23
+          #   pretty: "LibRapid_MacOS_GCC-14_C++23_MPFR"
 
-          - os: macos-latest
-            cc: ../llvm/bin/clang
-            cxx: ../llvm/bin/clang++
-            clangVer: "15.0"
-            blas: on
-            getBlas: off # Included with XCode
-            fftw: on
-            mpfr: on
-            cpp: 20
-            pretty: "LibRapid_MacOS_Clang++_C++20_BLAS_FFTW_MPFR"
+          # - os: macos-latest
+          #   cc: gcc-14
+          #   cxx: g++-14
+          #   blas: on # Accelerate Requires clang, so we get blas
+          #   getBlas: on
+          #   fftw: on
+          #   mpfr: on
+          #   cpp: 23
+          #   pretty: "LibRapid_MacOS_GCC-14_C++23_BLAS_FFTW_MPFR"
 
-          - os: macos-latest
-            cc: gcc-14
-            cxx: g++-14
-            blas: off
-            getBlas: off
-            fftw: off
-            mpfr: on
-            cpp: 20
-            pretty: "LibRapid_MacOS_GCC-14_C++20_MPFR"
+          # - os: windows-latest
+          #   cc: ../llvm/clang
+          #   cxx: ../llvm/clang++
+          #   clangVer: "16.0"
+          #   blas: off
+          #   getBlas: off
+          #   fftw: off
+          #   mpfr: on
+          #   cpp: 20
+          #   pretty: "LibRapid_Windows_Clang_C++20_MPFR"
 
-          - os: macos-latest
-            cc: gcc-14
-            cxx: g++-14
-            blas: on # Accelerate requires clang so we get blas
-            getBlas: on
-            fftw: on
-            mpfr: on
-            cpp: 20
-            pretty: "LibRapid_MacOS_GCC-14_C++20_BLAS_FFTW_MPFR"
+          # - os: windows-latest
+          #   cc: ../llvm/clang
+          #   cxx: ../llvm/clang++
+          #   clangVer: "16.0"
+          #   blas: on
+          #   getBlas: on
+          #   fftw: on
+          #   mpfr: on
+          #   cpp: 20
+          #   pretty: "LibRapid_Windows_Clang_C++20_BLAS_FFTW_MPFR"
 
-          - os: macos-latest
-            cc: gcc-14
-            cxx: g++-14
-            blas: off
-            getBlas: off
-            fftw: off
-            mpfr: on
-            cpp: 23
-            pretty: "LibRapid_MacOS_GCC-14_C++23_MPFR"
+          # - os: windows-latest
+          #   cc: ./llvm/clang
+          #   cxx: ./llvm/clang++
+          #   clangVer: "16.0"
+          #   blas: off
+          #   getBlas: off
+          #   fftw: off
+          #   mpfr: on
+          #   cpp: 23
+          #   pretty: "LibRapid_Windows_Clang_C++23_MPFR"
 
-          - os: macos-latest
-            cc: gcc-14
-            cxx: g++-14
-            blas: on # Accelerate Requires clang, so we get blas
-            getBlas: on
-            fftw: on
-            mpfr: on
-            cpp: 23
-            pretty: "LibRapid_MacOS_GCC-14_C++23_BLAS_FFTW_MPFR"
+          # - os: windows-latest
+          #   cc: ./llvm/clang
+          #   cxx: ./llvm/clang++
+          #   clangVer: "16.0"
+          #   blas: on
+          #   getBlas: on
+          #   fftw: on
+          #   mpfr: on
+          #   cpp: 23
+          #   pretty: "LibRapid_Windows_Clang_C++23_BLAS_FFTW_MPFR"
 
-          - os: windows-latest
-            cc: ../llvm/clang
-            cxx: ../llvm/clang++
-            clangVer: "16.0"
-            blas: off
-            getBlas: off
-            fftw: off
-            mpfr: on
-            cpp: 20
-            pretty: "LibRapid_Windows_Clang_C++20_MPFR"
+          # - os: windows-latest
+          #   cc: msvc
+          #   cxx: msvc
+          #   blas: off
+          #   getBlas: off
+          #   fftw: off
+          #   mpfr: on
+          #   cpp: 20
+          #   pretty: "LibRapid_Windows-Latest_MSVC_C++20"
 
-          - os: windows-latest
-            cc: ../llvm/clang
-            cxx: ../llvm/clang++
-            clangVer: "16.0"
-            blas: on
-            getBlas: on
-            fftw: on
-            mpfr: on
-            cpp: 20
-            pretty: "LibRapid_Windows_Clang_C++20_BLAS_FFTW_MPFR"
+          # - os: windows-latest
+          #   cc: msvc
+          #   cxx: msvc
+          #   blas: on
+          #   getBlas: on
+          #   fftw: on
+          #   mpfr: on
+          #   cpp: 20
+          #   pretty: "LibRapid_Windows-Latest_MSVC_C++20"
 
-          - os: windows-latest
-            cc: ./llvm/clang
-            cxx: ./llvm/clang++
-            clangVer: "16.0"
-            blas: off
-            getBlas: off
-            fftw: off
-            mpfr: on
-            cpp: 23
-            pretty: "LibRapid_Windows_Clang_C++23_MPFR"
+          # - os: windows-latest
+          #   cc: msvc
+          #   cxx: msvc
+          #   blas: off
+          #   getBlas: off
+          #   fftw: off
+          #   mpfr: on
+          #   cpp: 23
+          #   pretty: "LibRapid_Windows-Latest_MSVC_C++23"
 
-          - os: windows-latest
-            cc: ./llvm/clang
-            cxx: ./llvm/clang++
-            clangVer: "16.0"
-            blas: on
-            getBlas: on
-            fftw: on
-            mpfr: on
-            cpp: 23
-            pretty: "LibRapid_Windows_Clang_C++23_BLAS_FFTW_MPFR"
-
-          - os: windows-latest
-            cc: msvc
-            cxx: msvc
-            blas: off
-            getBlas: off
-            fftw: off
-            mpfr: on
-            cpp: 20
-            pretty: "LibRapid_Windows-Latest_MSVC_C++20"
-
-          - os: windows-latest
-            cc: msvc
-            cxx: msvc
-            blas: on
-            getBlas: on
-            fftw: on
-            mpfr: on
-            cpp: 20
-            pretty: "LibRapid_Windows-Latest_MSVC_C++20"
-
-          - os: windows-latest
-            cc: msvc
-            cxx: msvc
-            blas: off
-            getBlas: off
-            fftw: off
-            mpfr: on
-            cpp: 23
-            pretty: "LibRapid_Windows-Latest_MSVC_C++23"
-
-          - os: windows-latest
-            cc: msvc
-            cxx: msvc
-            blas: on
-            getBlas: on
-            fftw: on
-            mpfr: on
-            cpp: 23
-            pretty: "LibRapid_Windows-Latest_MSVC_C++23"
+          # - os: windows-latest
+          #   cc: msvc
+          #   cxx: msvc
+          #   blas: on
+          #   getBlas: on
+          #   fftw: on
+          #   mpfr: on
+          #   cpp: 23
+          #   pretty: "LibRapid_Windows-Latest_MSVC_C++23"
 
     steps:
       - name: Workflow Telemetry
@@ -323,121 +323,121 @@ jobs:
           cd buildRelease
           ctest -C Release --output-on-failure
 
-  build-docs:
-    name: Build Documentation Locally
-    runs-on: ubuntu-latest
+  # build-docs:
+  #   name: Build Documentation Locally
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout LibRapid
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
+  #   steps:
+  #     - name: Checkout LibRapid
+  #       uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
 
-      - name: Get latest CMake and ninja
-        uses: lukka/get-cmake@latest
+  #     - name: Get latest CMake and ninja
+  #       uses: lukka/get-cmake@latest
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.9"
+  #     - name: Setup Python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: "3.9"
 
-      - name: Install Clang
-        uses: KyleMayes/install-llvm-action@v2
-        with:
-          version: "15.0"
-          directory: "./llvm"
-          env: on
+  #     - name: Install Clang
+  #       uses: KyleMayes/install-llvm-action@v2
+  #       with:
+  #         version: "15.0"
+  #         directory: "./llvm"
+  #         env: on
 
-      - name: Build Doxygen
-        id: build_doxygen
-        continue-on-error: true
-        run: |
-          git clone --recursive https://github.com/doxygen/doxygen.git
-          cd doxygen
-          git checkout Release_1_9_7
-          mkdir build
-          cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles"
-          cmake --build . --config Release
-          sudo make install
-        env:
-          CC: gcc
-          CXX: g++
+  #     - name: Build Doxygen
+  #       id: build_doxygen
+  #       continue-on-error: true
+  #       run: |
+  #         git clone --recursive https://github.com/doxygen/doxygen.git
+  #         cd doxygen
+  #         git checkout Release_1_9_7
+  #         mkdir build
+  #         cd build
+  #         cmake .. -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles"
+  #         cmake --build . --config Release
+  #         sudo make install
+  #       env:
+  #         CC: gcc
+  #         CXX: g++
 
-      - name: Install Doxygen on Error
-        if: steps.build_doxygen.outcome != 'success'
-        run: |
-          sudo apt install doxygen
+  #     - name: Install Doxygen on Error
+  #       if: steps.build_doxygen.outcome != 'success'
+  #       run: |
+  #         sudo apt install doxygen
 
-      - name: Upgrade Source Distribution
-        continue-on-error: true
-        run: |
-          sudo apt update
-          sudo apt upgrade -y
-          sudo apt autoremove -y
+  #     - name: Upgrade Source Distribution
+  #       continue-on-error: true
+  #       run: |
+  #         sudo apt update
+  #         sudo apt upgrade -y
+  #         sudo apt autoremove -y
 
-      - name: Install LaTeX
-        continue-on-error: true
-        # run: |
-        #   sudo apt-get install -y texlive-full
-        run: |
-          sudo apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+  #     - name: Install LaTeX
+  #       continue-on-error: true
+  #       # run: |
+  #       #   sudo apt-get install -y texlive-full
+  #       run: |
+  #         sudo apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
 
-      - name: Install Requirements
-        continue-on-error: true
-        run: |
-          cd docs
-          pip install -r requirements.txt
+  #     - name: Install Requirements
+  #       continue-on-error: true
+  #       run: |
+  #         cd docs
+  #         pip install -r requirements.txt
 
-      - name: Force install Sphinx Build
-        continue-on-error: true
-        run: |
-          sudo apt --fix-broken install
-          sudo apt-get install python3-sphinx
+  #     - name: Force install Sphinx Build
+  #       continue-on-error: true
+  #       run: |
+  #         sudo apt --fix-broken install
+  #         sudo apt-get install python3-sphinx
 
-      - name: Configure Files
-        run: |
-          touch .is_local
+  #     - name: Configure Files
+  #       run: |
+  #         touch .is_local
 
-      - name: Build HTML Documentation
-        run: |
-          cd docs
-          make html
+  #     - name: Build HTML Documentation
+  #       run: |
+  #         cd docs
+  #         make html
 
-      - name: Build PDf Documentation
-        # continue-on-error: true
-        run: |
-          cd docs
-          make latexpdf
+  #     - name: Build PDf Documentation
+  #       # continue-on-error: true
+  #       run: |
+  #         cd docs
+  #         make latexpdf
 
-      - name: Store Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: Documentation
-          path: docs/build/**
+  #     - name: Store Artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: Documentation
+  #         path: docs/build/**
 
   run-benchmarks:
     name: Run Benchmarks on ${{ matrix.os }} with ${{ matrix.cxx }}
-    needs: [ compile, build-docs ]
+    needs: [ compile ]
     runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            cc: ../../llvm/bin/clang
-            cxx: ../../llvm/bin/clang++
-            clangVer: "16.0"
-            smallArrays: ON
-            pretty: "LibRapid_Ubuntu_Clang_OptimiseSmallArrays"
+          # - os: ubuntu-latest
+          #   cc: ../../llvm/bin/clang
+          #   cxx: ../../llvm/bin/clang++
+          #   clangVer: "16.0"
+          #   smallArrays: ON
+          #   pretty: "LibRapid_Ubuntu_Clang_OptimiseSmallArrays"
 
-          - os: ubuntu-latest
-            cc: ../../llvm/bin/clang
-            cxx: ../../llvm/bin/clang++
-            clangVer: "16.0"
-            smallArrays: OFF
-            pretty: "LibRapid_Ubuntu_Clang"
+          # - os: ubuntu-latest
+          #   cc: ../../llvm/bin/clang
+          #   cxx: ../../llvm/bin/clang++
+          #   clangVer: "16.0"
+          #   smallArrays: OFF
+          #   pretty: "LibRapid_Ubuntu_Clang"
 
           - os: ubuntu-latest
             cc: gcc-14
@@ -451,57 +451,57 @@ jobs:
             smallArrays: OFF
             pretty: "LibRapid_Ubuntu_GCC"
 
-          - os: macos-latest
-            cc: ../../llvm/bin/clang
-            cxx: ../../llvm/bin/clang++
-            clangVer: "16.0"
-            smallArrays: ON
-            pretty: "LibRapid_MacOS_Clang_OptimiseSmallArrays"
+          # - os: macos-latest
+          #   cc: ../../llvm/bin/clang
+          #   cxx: ../../llvm/bin/clang++
+          #   clangVer: "16.0"
+          #   smallArrays: ON
+          #   pretty: "LibRapid_MacOS_Clang_OptimiseSmallArrays"
 
-          - os: macos-latest
-            cc: ../../llvm/bin/clang
-            cxx: ../../llvm/bin/clang++
-            clangVer: "16.0"
-            smallArrays: OFF
-            pretty: "LibRapid_MacOS_Clang"
+          # - os: macos-latest
+          #   cc: ../../llvm/bin/clang
+          #   cxx: ../../llvm/bin/clang++
+          #   clangVer: "16.0"
+          #   smallArrays: OFF
+          #   pretty: "LibRapid_MacOS_Clang"
 
-          - os: macos-latest
-            cc: gcc-14
-            cxx: g++-14
-            smallArrays: ON
-            pretty: "LibRapid_MacOS_GCC_OptimiseSmallArrays"
+          # - os: macos-latest
+          #   cc: gcc-14
+          #   cxx: g++-14
+          #   smallArrays: ON
+          #   pretty: "LibRapid_MacOS_GCC_OptimiseSmallArrays"
 
-          - os: macos-latest
-            cc: gcc-14
-            cxx: g++-14
-            smallArrays: OFF
-            pretty: "LibRapid_MacOS_GCC"
+          # - os: macos-latest
+          #   cc: gcc-14
+          #   cxx: g++-14
+          #   smallArrays: OFF
+          #   pretty: "LibRapid_MacOS_GCC"
 
-          - os: windows-latest
-            cc: ../../llvm/clang
-            cxx: ../../llvm/clang++
-            clangVer: "16.0"
-            smallArrays: ON
-            pretty: "LibRapid_Windows_Clang_OptimiseSmallArrays"
+          # - os: windows-latest
+          #   cc: ../../llvm/clang
+          #   cxx: ../../llvm/clang++
+          #   clangVer: "16.0"
+          #   smallArrays: ON
+          #   pretty: "LibRapid_Windows_Clang_OptimiseSmallArrays"
 
-          - os: windows-latest
-            cc: ../../llvm/clang
-            cxx: ../../llvm/clang++
-            clangVer: "16.0"
-            smallArrays: OFF
-            pretty: "LibRapid_Windows_Clang"
+          # - os: windows-latest
+          #   cc: ../../llvm/clang
+          #   cxx: ../../llvm/clang++
+          #   clangVer: "16.0"
+          #   smallArrays: OFF
+          #   pretty: "LibRapid_Windows_Clang"
 
-          - os: windows-latest
-            cc: msvc
-            cxx: msvc
-            smallArrays: ON
-            pretty: "LibRapid_Windows_MSVC_OptimiseSmallArrays"
+          # - os: windows-latest
+          #   cc: msvc
+          #   cxx: msvc
+          #   smallArrays: ON
+          #   pretty: "LibRapid_Windows_MSVC_OptimiseSmallArrays"
 
-          - os: windows-latest
-            cc: msvc
-            cxx: msvc
-            smallArrays: OFF
-            pretty: "LibRapid_Windows_MSVC"
+          # - os: windows-latest
+          #   cc: msvc
+          #   cxx: msvc
+          #   smallArrays: OFF
+          #   pretty: "LibRapid_Windows_MSVC"
 
     steps:
       - name: Install Clang
