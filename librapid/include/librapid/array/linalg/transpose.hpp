@@ -53,35 +53,25 @@ namespace librapid {
 			t6 = _mm256_unpacklo_ps(r6, r7);
 			t7 = _mm256_unpackhi_ps(r6, r7);
 
-			__m256 v;
-
-			v  = _mm256_shuffle_ps(t0, t2, 0x4E);
-			r0 = _mm256_blend_ps(t0, v, 0xCC);
-			r1 = _mm256_blend_ps(t2, v, 0x33);
-
-			v  = _mm256_shuffle_ps(t1, t3, 0x4E);
-			r2 = _mm256_blend_ps(t1, v, 0xCC);
-			r3 = _mm256_blend_ps(t3, v, 0x33);
-
-			v  = _mm256_shuffle_ps(t4, t6, 0x4E);
-			r4 = _mm256_blend_ps(t4, v, 0xCC);
-			r5 = _mm256_blend_ps(t6, v, 0x33);
-
-			v  = _mm256_shuffle_ps(t5, t7, 0x4E);
-			r6 = _mm256_blend_ps(t5, v, 0xCC);
-			r7 = _mm256_blend_ps(t7, v, 0x33);
+			r0 = _mm256_shuffle_ps(t0, t2, 0x44);
+			r1 = _mm256_shuffle_ps(t0, t2, 0xEE);
+			r2 = _mm256_shuffle_ps(t1, t3, 0x44);
+			r3 = _mm256_shuffle_ps(t1, t3, 0xEE);
+			r4 = _mm256_shuffle_ps(t4, t6, 0x44);
+			r5 = _mm256_shuffle_ps(t4, t6, 0xEE);
+			r6 = _mm256_shuffle_ps(t5, t7, 0x44);
+			r7 = _mm256_shuffle_ps(t5, t7, 0xEE);
 
 			__m256 alphaVec = _mm256_set1_ps(alpha);
 
-			// Must store unaligned, since the indices are not guaranteed to be aligned
-			_mm256_storeu_ps(&out[0 * cols], _mm256_mul_ps(r0, alphaVec));
-			_mm256_storeu_ps(&out[1 * cols], _mm256_mul_ps(r1, alphaVec));
-			_mm256_storeu_ps(&out[2 * cols], _mm256_mul_ps(r2, alphaVec));
-			_mm256_storeu_ps(&out[3 * cols], _mm256_mul_ps(r3, alphaVec));
-			_mm256_storeu_ps(&out[4 * cols], _mm256_mul_ps(r4, alphaVec));
-			_mm256_storeu_ps(&out[5 * cols], _mm256_mul_ps(r5, alphaVec));
-			_mm256_storeu_ps(&out[6 * cols], _mm256_mul_ps(r6, alphaVec));
-			_mm256_storeu_ps(&out[7 * cols], _mm256_mul_ps(r7, alphaVec));
+			_mm256_storeu_ps(out + 0 * cols, _mm256_mul_ps(r0, alphaVec));
+			_mm256_storeu_ps(out + 1 * cols, _mm256_mul_ps(r1, alphaVec));
+			_mm256_storeu_ps(out + 2 * cols, _mm256_mul_ps(r2, alphaVec));
+			_mm256_storeu_ps(out + 3 * cols, _mm256_mul_ps(r3, alphaVec));
+			_mm256_storeu_ps(out + 4 * cols, _mm256_mul_ps(r4, alphaVec));
+			_mm256_storeu_ps(out + 5 * cols, _mm256_mul_ps(r5, alphaVec));
+			_mm256_storeu_ps(out + 6 * cols, _mm256_mul_ps(r6, alphaVec));
+			_mm256_storeu_ps(out + 7 * cols, _mm256_mul_ps(r7, alphaVec));
 		}
 
 		template<typename Alpha>
@@ -91,41 +81,30 @@ namespace librapid {
 			__m256d r0, r1, r2, r3;
 			__m256d t0, t1, t2, t3;
 
-#		define LOAD256_IMPL(LEFT_, RIGHT_)                                                        \
-			_mm256_insertf128_pd(                                                                  \
-			  _mm256_castpd128_pd256(_mm_loadu_pd(&(LEFT_))), _mm_loadu_pd(&(RIGHT_)), 1)
-
-			r0 = LOAD256_IMPL(in[0 * cols + 0], in[2 * cols + 0]);
-			r1 = LOAD256_IMPL(in[1 * cols + 0], in[3 * cols + 0]);
-			r2 = LOAD256_IMPL(in[0 * cols + 2], in[2 * cols + 2]);
-			r3 = LOAD256_IMPL(in[1 * cols + 2], in[3 * cols + 2]);
-
-#		undef LOAD256_IMPL
+			r0 = _mm256_loadu_pd(in + 0 * cols);
+			r1 = _mm256_loadu_pd(in + 1 * cols);
+			r2 = _mm256_loadu_pd(in + 2 * cols);
+			r3 = _mm256_loadu_pd(in + 3 * cols);
 
 			t0 = _mm256_unpacklo_pd(r0, r1);
 			t1 = _mm256_unpackhi_pd(r0, r1);
 			t2 = _mm256_unpacklo_pd(r2, r3);
 			t3 = _mm256_unpackhi_pd(r2, r3);
 
-			__m256d v;
-
-			v  = _mm256_shuffle_pd(t0, t2, 0x0);
-			r0 = _mm256_blend_pd(t0, v, 0xC);
-			r1 = _mm256_blend_pd(t2, v, 0x3);
-
-			v  = _mm256_shuffle_pd(t1, t3, 0x0);
-			r2 = _mm256_blend_pd(t1, v, 0xC);
-			r3 = _mm256_blend_pd(t3, v, 0x3);
+			r0 = _mm256_permute2f128_pd(t0, t2, 0x20);
+			r1 = _mm256_permute2f128_pd(t1, t3, 0x20);
+			r2 = _mm256_permute2f128_pd(t0, t2, 0x31);
+			r3 = _mm256_permute2f128_pd(t1, t3, 0x31);
 
 			__m256d alphaVec = _mm256_set1_pd(alpha);
 
-			_mm256_store_pd(&out[0 * cols], _mm256_mul_pd(r0, alphaVec));
-			_mm256_store_pd(&out[1 * cols], _mm256_mul_pd(r1, alphaVec));
-			_mm256_store_pd(&out[2 * cols], _mm256_mul_pd(r2, alphaVec));
-			_mm256_store_pd(&out[3 * cols], _mm256_mul_pd(r3, alphaVec));
+			_mm256_storeu_pd(out + 0 * cols, _mm256_mul_pd(r0, alphaVec));
+			_mm256_storeu_pd(out + 1 * cols, _mm256_mul_pd(r1, alphaVec));
+			_mm256_storeu_pd(out + 2 * cols, _mm256_mul_pd(r2, alphaVec));
+			_mm256_storeu_pd(out + 3 * cols, _mm256_mul_pd(r3, alphaVec));
 		}
-#	elif !defined(LIBRAPID_APPLE) && LIBRAPID_ARCH >= ARCH_SSE
 
+#	elif !defined(LIBRAPID_APPLE) && LIBRAPID_ARCH >= ARCH_SSE
 #		define LIBRAPID_F64_TRANSPOSE_KERNEL_SIZE 2
 #		define LIBRAPID_F32_TRANSPOSE_KERNEL_SIZE 4
 
@@ -133,7 +112,7 @@ namespace librapid {
 		LIBRAPID_ALWAYS_INLINE void transposeFloatKernel(float *__restrict out,
 														 float *__restrict in, Alpha alpha,
 														 int64_t cols) {
-			__m128 tmp3, tmp2, tmp1, tmp0;
+			__m128 tmp0, tmp1, tmp2, tmp3;
 
 			tmp0 = _mm_shuffle_ps(_mm_loadu_ps(in + 0 * cols), _mm_loadu_ps(in + 1 * cols), 0x44);
 			tmp2 = _mm_shuffle_ps(_mm_loadu_ps(in + 0 * cols), _mm_loadu_ps(in + 1 * cols), 0xEE);
@@ -154,336 +133,164 @@ namespace librapid {
 														  int64_t cols) {
 			__m128d tmp0, tmp1;
 
-			// Load the values from input matrix
 			tmp0 = _mm_loadu_pd(in + 0 * cols);
 			tmp1 = _mm_loadu_pd(in + 1 * cols);
 
-			// Transpose the 2x2 matrix
+			// Transpose 2x2
 			__m128d tmp0Unpck = _mm_unpacklo_pd(tmp0, tmp1);
 			__m128d tmp1Unpck = _mm_unpackhi_pd(tmp0, tmp1);
 
-			// Store the transposed values in the output matrix
+			// Multiply with alpha
 			__m128d alphaVec = _mm_set1_pd(alpha);
 			_mm_storeu_pd(out + 0 * cols, _mm_mul_pd(tmp0Unpck, alphaVec));
 			_mm_storeu_pd(out + 1 * cols, _mm_mul_pd(tmp1Unpck, alphaVec));
 		}
 
-#	elif defined(LIBRAPID_NEON)
-#		define LIBRAPID_F64_TRANSPOSE_KERNEL_SIZE 2
+#	else
+#		define LIBRAPID_F64_TRANSPOSE_KERNEL_SIZE 4
 #		define LIBRAPID_F32_TRANSPOSE_KERNEL_SIZE 4
 
 		template<typename Alpha>
 		LIBRAPID_ALWAYS_INLINE void transposeFloatKernel(float *__restrict out,
 														 float *__restrict in, Alpha alpha,
 														 int64_t cols) {
-			float32x4_t r0, r1, r2, r3;
-			float32x4_t t0, t1, t2, t3;
-
-			r0 = vld1q_f32(&in[0 * cols]);
-			r1 = vld1q_f32(&in[1 * cols]);
-			r2 = vld1q_f32(&in[2 * cols]);
-			r3 = vld1q_f32(&in[3 * cols]);
-
-			t0 = vzip1q_f32(r0, r1);
-			t1 = vzip2q_f32(r0, r1);
-			t2 = vzip1q_f32(r2, r3);
-			t3 = vzip2q_f32(r2, r3);
-
-			r0 = vcombine_f32(vget_low_f32(t0), vget_low_f32(t2));
-			r1 = vcombine_f32(vget_high_f32(t0), vget_high_f32(t2));
-			r2 = vcombine_f32(vget_low_f32(t1), vget_low_f32(t3));
-			r3 = vcombine_f32(vget_high_f32(t1), vget_high_f32(t3));
-
-			float32x4_t alphaVec = vdupq_n_f32(alpha);
-
-			vst1q_f32(&out[0 * cols], vmulq_f32(r0, alphaVec));
-			vst1q_f32(&out[1 * cols], vmulq_f32(r1, alphaVec));
-			vst1q_f32(&out[2 * cols], vmulq_f32(r2, alphaVec));
-			vst1q_f32(&out[3 * cols], vmulq_f32(r3, alphaVec));
+			for (int r = 0; r < 4; ++r) {
+				for (int c = 0; c < 4; ++c) { out[c * cols + r] = in[r * cols + c] * alpha; }
+			}
 		}
 
 		template<typename Alpha>
 		LIBRAPID_ALWAYS_INLINE void transposeDoubleKernel(double *__restrict out,
 														  double *__restrict in, Alpha alpha,
 														  int64_t cols) {
-			float64x2_t r0, r1;
-
-			r0 = vld1q_f64(&in[0 * cols]);
-			r1 = vld1q_f64(&in[1 * cols]);
-
-			float64x2_t t0 = vzip1q_f64(r0, r1);
-			float64x2_t t1 = vzip2q_f64(r0, r1);
-
-			float64x2_t alphaVec = vdupq_n_f64(alpha);
-
-			vst1q_f64(&out[0 * cols], vmulq_f64(t0, alphaVec));
-			vst1q_f64(&out[1 * cols], vmulq_f64(t1, alphaVec));
+			for (int r = 0; r < 4; ++r) {
+				for (int c = 0; c < 4; ++c) { out[c * cols + r] = in[r * cols + c] * alpha; }
+			}
 		}
+
 #	endif
-#endif // LIBRAPID_NATIVE_ARCH
 
-		// Ensure the kernel size is always defined, even if the above code doesn't define it
-#ifndef LIBRAPID_F32_TRANSPOSE_KERNEL_SIZE
-#	define LIBRAPID_F32_TRANSPOSE_KERNEL_SIZE 0
-#endif // LIBRAPID_F32_TRANSPOSE_KERNEL_SIZE
+		template<typename T, typename Alpha>
+		LIBRAPID_ALWAYS_INLINE void transposeInplace(Array<T> &array, Alpha alpha = Alpha(1.0)) {
+			LIBRAPID_ASSERT(array.shape()[0] == array.shape()[1],
+							"Cannot transpose non-square matrix in-place");
 
-#ifndef LIBRAPID_F64_TRANSPOSE_KERNEL_SIZE
-#	define LIBRAPID_F64_TRANSPOSE_KERNEL_SIZE 0
-#endif // LIBRAPID_F64_TRANSPOSE_KERNEL_SIZE
+			auto *ptr = array.storage().begin();
+			int64_t rows = array.shape()[0];
 
-	} // namespace kernels
+			for (int64_t i = 0; i < rows; ++i) {
+				for (int64_t j = i + 1; j < rows; ++j) {
+					T tmp		   = ptr[i * rows + j];
+					ptr[i * rows + j] = ptr[j * rows + i] * alpha;
+					ptr[j * rows + i] = tmp * alpha;
+				}
+			}
 
-	namespace detail {
+			// Scale diagonal if alpha is not 1
+			if (alpha != Alpha(1.0)) {
+				for (int64_t i = 0; i < rows; ++i) { ptr[i * rows + i] *= alpha; }
+			}
+		}
+
 		namespace cpu {
-			template<typename Scalar, typename Alpha>
+			/// CPU specific transpose function that applies a memory transpose with SIMD kernels
+			/// \tparam T The data type
+			/// \tparam Alpha The alpha type (scalar multiplier)
+			/// \param out The output array
+			/// \param in The input array
+			/// \param rows The number of rows in the input array
+			/// \param cols The number of columns in the input array
+			/// \param alpha The scalar multiplier
+			/// \param blockSize The block size to use for the transpose
+			template<typename T, typename Alpha>
 			LIBRAPID_ALWAYS_INLINE void
-			transposeImpl(Scalar *__restrict out, const Scalar *__restrict in, int64_t rows,
-						  int64_t cols, Alpha alpha, int64_t blockSize) {
-#if !defined(LIBRAPID_OPTIMISE_SMALL_ARRAYS)
-				if (rows * cols > global::multithreadThreshold) {
-#	pragma omp parallel for shared(rows, cols, blockSize, in, out, alpha) default(none)           \
-	  num_threads((int)global::numThreads)
-					for (int64_t i = 0; i < rows; i += blockSize) {
-						for (int64_t j = 0; j < cols; j += blockSize) {
-							for (int64_t row = i; row < i + blockSize && row < rows; ++row) {
-								for (int64_t col = j; col < j + blockSize && col < cols; ++col) {
-									out[col * rows + row] = in[row * cols + col] * alpha;
+			transpose(T *__restrict out, const T *__restrict in, int64_t rows, int64_t cols,
+					  Alpha alpha, size_t blockSize = 64) {
+				using Scalar = std::decay_t<T>;
+
+				if constexpr (std::is_same_v<Scalar, float> || std::is_same_v<Scalar, double>) {
+					constexpr size_t kernelSize =
+					  (std::is_same_v<Scalar, float>) ? LIBRAPID_F32_TRANSPOSE_KERNEL_SIZE
+															  : LIBRAPID_F64_TRANSPOSE_KERNEL_SIZE;
+
+#if defined(LIBRAPID_NATIVE_ARCH)
+					for (int64_t i = 0; i < rows; i += kernelSize) {
+						for (int64_t j = 0; j < cols; j += kernelSize) {
+							// Ensure we don't go out of bounds
+							if (i + kernelSize <= rows && j + kernelSize <= cols) {
+								// Use the kernel
+								if constexpr (std::is_same_v<Scalar, float>) {
+									transposeFloatKernel(
+									  out + j * rows + i, const_cast<float *>(in) + i * cols + j,
+									  alpha, cols);
+								} else {
+									transposeDoubleKernel(
+									  out + j * rows + i, const_cast<double *>(in) + i * cols + j,
+									  alpha, cols);
+								}
+							} else {
+								// Fallback for out-of-bounds elements
+								for (int64_t ib = i;
+									 ib < std::min(i + (int64_t)kernelSize, rows); ++ib) {
+									for (int64_t jb = j;
+										 jb < std::min(j + (int64_t)kernelSize, cols); ++jb) {
+										out[jb * rows + ib] = in[ib * cols + jb] * alpha;
+									}
 								}
 							}
 						}
 					}
-				} else
-#endif // LIBRAPID_OPTIMISE_SMALL_ARRAYS
-				{
+#else
+					// Fallback implementation without SIMD
+					for (int64_t i = 0; i < rows; ++i) {
+						for (int64_t j = 0; j < cols; ++j) {
+							out[j * rows + i] = in[i * cols + j] * alpha;
+						}
+					}
+#endif
+				} else {
+					// Fallback for non-float types or blocked transpose for large matrices
 					for (int64_t i = 0; i < rows; i += blockSize) {
 						for (int64_t j = 0; j < cols; j += blockSize) {
-							for (int64_t row = i; row < i + blockSize && row < rows; ++row) {
-								for (int64_t col = j; col < j + blockSize && col < cols; ++col) {
-									out[col * rows + row] = in[row * cols + col] * alpha;
+							int64_t maxI = std::min(i + (int64_t)blockSize, rows);
+							int64_t maxJ = std::min(j + (int64_t)blockSize, cols);
+							for (int64_t ib = i; ib < maxI; ++ib) {
+								for (int64_t jb = j; jb < maxJ; ++jb) {
+									out[jb * rows + ib] = in[ib * cols + jb] * alpha;
 								}
 							}
 						}
 					}
 				}
 			}
-
-#if LIBRAPID_F32_TRANSPOSE_KERNEL_SIZE > 0
-			template<typename Alpha>
-			LIBRAPID_ALWAYS_INLINE void transposeImpl(float *__restrict out, float *__restrict in,
-													  int64_t rows, int64_t cols, Alpha alpha,
-													  int64_t) {
-				constexpr int64_t blockSize = LIBRAPID_F32_TRANSPOSE_KERNEL_SIZE;
-
-#	if !defined(LIBRAPID_OPTIMISE_SMALL_ARRAYS)
-				if (rows * cols > global::multithreadThreshold) {
-#		pragma omp parallel for shared(rows, cols, in, out, alpha) default(none)                  \
-		  num_threads((int)global::numThreads)
-					for (int64_t i = 0; i < rows; i += blockSize) {
-						for (int64_t j = 0; j < cols; j += blockSize) {
-							if (i + blockSize <= rows && j + blockSize <= cols) {
-								kernels::transposeFloatKernel(
-								  &out[j * rows + i], &in[i * cols + j], alpha, rows);
-							} else {
-								for (int64_t row = i; row < i + blockSize && row < rows; ++row) {
-									for (int64_t col = j; col < j + blockSize && col < cols;
-										 ++col) {
-										out[col * rows + row] = in[row * cols + col];
-									}
-								}
-							}
-						}
-					}
-				} else
-#	endif
-				{
-					for (int64_t i = 0; i < rows; i += blockSize) {
-						for (int64_t j = 0; j < cols; j += blockSize) {
-							if (i + blockSize <= rows && j + blockSize <= cols) {
-								kernels::transposeFloatKernel(
-								  &out[j * rows + i], &in[i * cols + j], alpha, rows);
-							} else {
-								for (int64_t row = i; row < i + blockSize && row < rows; ++row) {
-									for (int64_t col = j; col < j + blockSize && col < cols;
-										 ++col) {
-										out[col * rows + row] = in[row * cols + col];
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-#endif // LIBRAPID_F32_TRANSPOSE_KERNEL_SIZE > 0
-
-#if LIBRAPID_F64_TRANSPOSE_KERNEL_SIZE > 0
-			template<typename Alpha>
-			LIBRAPID_ALWAYS_INLINE void transposeImpl(double *__restrict out, double *__restrict in,
-													  int64_t rows, int64_t cols, Alpha alpha,
-													  int64_t) {
-				constexpr int64_t blockSize = LIBRAPID_F64_TRANSPOSE_KERNEL_SIZE;
-
-#	if !defined(LIBRAPID_OPTIMISE_SMALL_ARRAYS)
-				if (rows * cols > global::multithreadThreshold) {
-#		pragma omp parallel for shared(rows, cols, in, out, alpha) default(none)                  \
-		  num_threads((int)global::numThreads)
-					for (int64_t i = 0; i < rows; i += blockSize) {
-						for (int64_t j = 0; j < cols; j += blockSize) {
-							if (i + blockSize <= rows && j + blockSize <= cols) {
-								kernels::transposeDoubleKernel(
-								  &out[j * rows + i], &in[i * cols + j], alpha, rows);
-							} else {
-								for (int64_t row = i; row < i + blockSize && row < rows; ++row) {
-									for (int64_t col = j; col < j + blockSize && col < cols;
-										 ++col) {
-										out[col * rows + row] = in[row * cols + col] * alpha;
-									}
-								}
-							}
-						}
-					}
-				} else
-#	endif // LIBRAPID_OPTIMISE_SMALL_ARRAYS
-				{
-					for (int64_t i = 0; i < rows; i += blockSize) {
-						for (int64_t j = 0; j < cols; j += blockSize) {
-							if (i + blockSize <= rows && j + blockSize <= cols) {
-								kernels::transposeDoubleKernel(
-								  &out[j * rows + i], &in[i * cols + j], alpha, rows);
-							} else {
-								for (int64_t row = i; row < i + blockSize && row < rows; ++row) {
-									for (int64_t col = j; col < j + blockSize && col < cols;
-										 ++col) {
-										out[col * rows + row] = in[row * cols + col] * alpha;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-#endif // LIBRAPID_F64_TRANSPOSE_KERNEL_SIZE > 0
 		} // namespace cpu
 
-#if defined(LIBRAPID_HAS_OPENCL)
-
 		namespace opencl {
-			template<typename Scalar, typename Alpha>
-			LIBRAPID_ALWAYS_INLINE void transposeImpl(cl::Buffer &out, const cl::Buffer &in,
+#if defined(LIBRAPID_HAS_OPENCL)
+			template<typename T, typename Alpha>
+			LIBRAPID_ALWAYS_INLINE void transpose(const cl::Buffer &out, const cl::Buffer &in,
 													  int64_t rows, int64_t cols, Alpha alpha,
-													  int64_t) {
-				std::string kernelName =
-				  fmt::format("transpose_{}", typetraits::TypeInfo<Scalar>::name);
-				cl::Kernel kernel(global::openCLProgram, kernelName.c_str());
+													  int64_t outOffset, int64_t inOffset = 0) {
+				std::string kernelNameTmp = "transpose_" + typetraits::typeName<T>();
+				std::string kernelName	   = kernelNameTmp;
+
+				cl::Kernel kernel = opencl::getKernel(kernelName);
 				kernel.setArg(0, out);
 				kernel.setArg(1, in);
-				kernel.setArg(2, int(rows));
-				kernel.setArg(3, int(cols));
-				kernel.setArg(4, Scalar(alpha));
-				int TILE_DIM = 16;
-				cl::NDRange global((cols + TILE_DIM - 1) / TILE_DIM * TILE_DIM,
-								   (rows + TILE_DIM - 1) / TILE_DIM * TILE_DIM);
-				cl::NDRange local(TILE_DIM, TILE_DIM);
-				auto ret =
-				  global::openCLQueue.enqueueNDRangeKernel(kernel, cl::NullRange, global, local);
-				LIBRAPID_ASSERT(ret == CL_SUCCESS, "OpenCL kernel failed");
+				kernel.setArg(2, (cl_long)rows);
+				kernel.setArg(3, (cl_long)cols);
+				kernel.setArg(4, (cl_long)outOffset);
+				kernel.setArg(5, (cl_long)inOffset);
+				kernel.setArg(6, alpha);
+
+				cl::NDRange globalWorkSize(rows, cols);
+				opencl::enqueueKernel(kernel, globalWorkSize);
 			}
+#endif
 		} // namespace opencl
 
-#endif // LIBRAPID_HAS_OPENCL
-
-#if defined(LIBRAPID_HAS_CUDA)
-		namespace cuda {
-			template<typename Scalar, typename Alpha>
-			LIBRAPID_ALWAYS_INLINE void transposeImpl(Scalar *__restrict out, Scalar *__restrict in,
-													  int64_t rows, int64_t cols, Alpha alpha,
-													  int64_t blockSize) {
-				LIBRAPID_NOT_IMPLEMENTED
-			}
-
-			template<typename Alpha>
-			LIBRAPID_ALWAYS_INLINE void transposeImpl(float *__restrict out, float *__restrict in,
-													  int64_t rows, int64_t cols, Alpha alpha,
-													  int64_t) {
-				float zero = 0.0f;
-				cublasSafeCall(cublasSgeam(global::cublasHandle,
-										   CUBLAS_OP_T,
-										   CUBLAS_OP_N,
-										   (int)rows,
-										   (int)cols,
-										   &alpha,
-										   in,
-										   (int)cols,
-										   &zero,
-										   in,
-										   (int)cols,
-										   out,
-										   rows));
-			}
-
-			template<typename Alpha>
-			LIBRAPID_ALWAYS_INLINE void transposeImpl(double *__restrict out, double *__restrict in,
-													  int64_t rows, int64_t cols, Alpha alpha,
-													  int64_t) {
-				double zero = 0.0;
-				cublasSafeCall(cublasDgeam(global::cublasHandle,
-										   CUBLAS_OP_T,
-										   CUBLAS_OP_N,
-										   rows,
-										   cols,
-										   &alpha,
-										   in,
-										   cols,
-										   &zero,
-										   in,
-										   cols,
-										   out,
-										   rows));
-			}
-
-			template<typename Alpha>
-			LIBRAPID_ALWAYS_INLINE void transposeImpl(Complex<float> *__restrict out,
-													  Complex<float> *__restrict in, int64_t rows,
-													  int64_t cols, Complex<Alpha> alpha, int64_t) {
-				cuComplex alphaCu {alpha.real(), alpha.imag()};
-				cuComplex zero {0.0f, 0.0f};
-				cublasSafeCall(cublasCgeam(global::cublasHandle,
-										   CUBLAS_OP_T,
-										   CUBLAS_OP_N,
-										   rows,
-										   cols,
-										   &alphaCu,
-										   reinterpret_cast<cuComplex *>(in),
-										   cols,
-										   &zero,
-										   reinterpret_cast<cuComplex *>(in),
-										   cols,
-										   reinterpret_cast<cuComplex *>(out),
-										   rows));
-			}
-
-			template<typename Alpha>
-			LIBRAPID_ALWAYS_INLINE void transposeImpl(Complex<double> *__restrict out,
-													  Complex<double> *__restrict in, int64_t rows,
-													  int64_t cols, Complex<Alpha> alpha, int64_t) {
-				cuDoubleComplex alphaCu {alpha.real(), alpha.imag()};
-				cuDoubleComplex zero {0.0, 0.0};
-				cublasSafeCall(cublasZgeam(global::cublasHandle,
-										   CUBLAS_OP_T,
-										   CUBLAS_OP_N,
-										   rows,
-										   cols,
-										   &alphaCu,
-										   reinterpret_cast<cuDoubleComplex *>(in),
-										   cols,
-										   &zero,
-										   reinterpret_cast<cuDoubleComplex *>(in),
-										   cols,
-										   reinterpret_cast<cuDoubleComplex *>(out),
-										   rows));
-			}
-		} // namespace cuda
-#endif // LIBRAPID_HAS_CUDA
-	} // namespace detail
+#endif
+	} // namespace kernels
 
 	namespace array {
 		template<typename TransposeType>
@@ -517,59 +324,59 @@ namespace librapid {
 			Transpose(Transpose &&other) noexcept = default;
 
 			/// Assign another Transpose object to this one
-			/// \param other The Transpose to assign
-			/// \return *this;
+			/// \param other The Transpose object to copy
+			/// \return A reference to this object
 			auto operator=(const Transpose &other) -> Transpose & = default;
 
-			/// Access sub-array of this Transpose object
-			/// \param index Array index
-			/// \return GeneralArrayView<T>
-			GeneralArrayView<ArrayType> operator[](int64_t index) const;
+			/// Move assign another Transpose object to this one
+			/// \param other The Transpose object to move
+			/// \return A reference to this object
+			auto operator=(Transpose &&other) noexcept -> Transpose & = default;
 
-			/// Get the shape of this Transpose object
-			/// \return Shape
-			LIBRAPID_NODISCARD LIBRAPID_ALWAYS_INLINE ShapeType shape() const;
+			/// Access the shape of the transposed array
+			/// \return The shape of the transposed array
+			LIBRAPID_NODISCARD auto shape() const -> const ShapeType &;
 
-			LIBRAPID_NODISCARD LIBRAPID_ALWAYS_INLINE auto size() const -> size_t;
+			/// Access the number of dimensions of the transposed array
+			/// \return The number of dimensions of the transposed array
+			LIBRAPID_NODISCARD auto ndim() const -> int64_t;
 
-			/// Return the number of dimensions of the Transpose object
-			/// \return Number of dimensions
-			LIBRAPID_NODISCARD LIBRAPID_ALWAYS_INLINE int64_t ndim() const;
+			/// Access the size of the transposed array
+			/// \return The size of the transposed array
+			LIBRAPID_NODISCARD auto size() const -> int64_t;
 
-			/// Access a scalar at a given index in the object. The index will be converted into
-			/// a multi-dimensional index using the shape of the object, and counts in row-major
-			/// order
-			/// \param index Index of the scalar
-			/// \return Scalar type at the given index
-			LIBRAPID_NODISCARD LIBRAPID_ALWAYS_INLINE auto scalar(int64_t index) const;
+			/// Access a scalar element of the transposed array
+			/// \param index The index of the element to access
+			/// \return The element at the given index
+			template<typename T = Transpose>
+			LIBRAPID_NODISCARD auto scalar(int64_t index) const -> auto;
 
-			/// \brief Return the axes of the Transpose object
-			/// \return `ShapeType` containing the axes
-			LIBRAPID_NODISCARD LIBRAPID_ALWAYS_INLINE const ShapeType &axes() const;
+			/// Access the transposition axes
+			/// \return The transposition axes
+			LIBRAPID_NODISCARD auto axes() const -> const ShapeType &;
 
-			/// \brief Return the alpha value of the Transpose object
-			/// \return Alpha scaling factor
-			LIBRAPID_NODISCARD LIBRAPID_ALWAYS_INLINE const Scalar &alpha() const;
+			/// Access the alpha scaling factor
+			/// \return The alpha scaling factor
+			LIBRAPID_NODISCARD auto alpha() const -> const Scalar &;
 
-			/// \brief Return the untransposed array object
-			/// \return Array object
-			LIBRAPID_NODISCARD LIBRAPID_ALWAYS_INLINE const ArrayType &array() const;
-			LIBRAPID_NODISCARD LIBRAPID_ALWAYS_INLINE ArrayType &array();
+			/// Access the array being transposed
+			/// \return The array being transposed
+			LIBRAPID_NODISCARD auto array() const -> const ArrayType &;
 
-			template<typename ShapeType_, typename StorageType_>
-			LIBRAPID_ALWAYS_INLINE void
-			applyTo(ArrayContainer<ShapeType_, StorageType_> &out) const;
+			/// Access the array being transposed
+			/// \return The array being transposed
+			LIBRAPID_NODISCARD auto array() -> ArrayType &;
 
-			/// Evaluate the Transpose object and return the result. Depending on your use case,
-			/// calling this function mid-expression might result in better performance, but you
-			/// should always test the available options before making a decision.
-			/// \return Evaluated expression
-			LIBRAPID_NODISCARD LIBRAPID_ALWAYS_INLINE auto eval() const;
+			/// Assign the result of this transpose operation to an array
+			/// \tparam T_ The type of the array to assign to
+			/// \param out The array to assign to
+			template<typename T_>
+			void assignTo(T_ &out) const;
 
-			template<typename T, typename Char, size_t N, typename Ctx>
-			LIBRAPID_ALWAYS_INLINE void str(const fmt::formatter<T, Char> &format, char bracket,
-											char separator, const char (&formatString)[N],
-											Ctx &ctx) const;
+			/// Evaluate the transpose operation, returning a new array
+			/// \return A new array containing the result of the transpose operation
+			template<typename T = Transpose>
+			LIBRAPID_NODISCARD auto eval() const;
 
 		private:
 			ArrayType m_array;
@@ -580,13 +387,12 @@ namespace librapid {
 			Scalar m_alpha;
 		};
 
-		template<typename T>
-		Transpose<T>::Transpose(T &&array, const ShapeType &axes, Scalar alpha) :
-				m_array(std::forward<T>(array)), m_inputShape(array.shape()), m_axes(axes),
-				m_alpha(alpha) {
-			LIBRAPID_ASSERT(m_inputShape.ndim() == m_axes.ndim(),
-							"Shape and axes must have the same number of dimensions");
-
+		// Implementation
+		template<typename TransposeType>
+		Transpose<TransposeType>::Transpose(TransposeType &&array, const ShapeType &axes,
+											Scalar alpha) :
+				m_array(std::forward<TransposeType>(array)), m_inputShape(m_array.shape()),
+				m_axes(axes), m_alpha(alpha) {
 			m_outputShape = m_inputShape;
 			for (size_t i = 0; i < m_inputShape.ndim(); i++) {
 				m_outputShape[i] = m_inputShape[m_axes[i]];
@@ -596,12 +402,12 @@ namespace librapid {
 		}
 
 		template<typename T>
-		auto Transpose<T>::shape() const -> ShapeType {
+		auto Transpose<T>::shape() const -> const ShapeType & {
 			return m_outputShape;
 		}
 
 		template<typename T>
-		auto Transpose<T>::size() const -> size_t {
+		auto Transpose<T>::size() const -> int64_t {
 			return m_outputSize;
 		}
 
@@ -612,8 +418,18 @@ namespace librapid {
 
 		template<typename T>
 		auto Transpose<T>::scalar(int64_t index) const -> auto {
-			// TODO: This is a heinously inefficient way of doing this. Fix it.
-			return eval().scalar(index);
+			// Optimized scalar access: calculate original index directly without full evaluation
+			auto outputCoords = m_outputShape.coords(index);
+			ShapeType originalCoords = ShapeType::zeros(m_inputShape.ndim());
+			
+			// Apply reverse transpose mapping to get original coordinates
+			for (size_t i = 0; i < m_inputShape.ndim(); i++) {
+				originalCoords[m_axes[i]] = outputCoords[i];
+			}
+			
+			// Calculate original linear index and access the underlying data
+			int64_t originalIndex = m_inputShape.index(originalCoords);
+			return m_array.scalar(originalIndex) * m_alpha;
 		}
 
 		template<typename T>
@@ -637,160 +453,142 @@ namespace librapid {
 		}
 
 		template<typename T>
-		template<typename ShapeType_, typename StorageType_>
-		void Transpose<T>::applyTo(ArrayContainer<ShapeType_, StorageType_> &out) const {
+		template<typename T_>
+		void Transpose<T>::assignTo(T_ &out) const {
 			bool inplace = ((void *)&out) == ((void *)&m_array);
-			LIBRAPID_ASSERT(!inplace, "Cannot transpose inplace");
+
 			LIBRAPID_ASSERT(out.shape() == m_outputShape, "Transpose assignment shape mismatch");
 
-			if constexpr (isArray) {
+			if (m_inputShape.ndim() == 2 && m_axes[0] == 1 && m_axes[1] == 0) {
+				// 2D transpose -- use optimized kernel
 				if constexpr (isHost) {
 					auto *__restrict outPtr = out.storage().begin();
 					auto *__restrict inPtr	= m_array.storage().begin();
-					int64_t blockSize		= global::cacheLineSize / sizeof(Scalar);
 
-					if (m_inputShape.ndim() == 2) {
-						detail::cpu::transposeImpl(
-						  outPtr, inPtr, m_inputShape[0], m_inputShape[1], m_alpha, blockSize);
-
-					} else {
-						LIBRAPID_NOT_IMPLEMENTED
-					}
-				}
+					constexpr size_t blockSize = 64;
+					kernels::cpu::transpose(
+					  outPtr, inPtr, m_inputShape[0], m_inputShape[1], m_alpha, blockSize);
+				} else if constexpr (isOpenCL) {
 #if defined(LIBRAPID_HAS_OPENCL)
-				else if constexpr (isOpenCL) {
-					cl::Buffer &outBuffer	   = out.storage().data();
+					const cl::Buffer &outBuffer = out.storage().data();
 					const cl::Buffer &inBuffer = m_array.storage().data();
 
-					if (m_inputShape.ndim() == 2) {
-						detail::opencl::transposeImpl<Scalar>(
-						  outBuffer, inBuffer, m_inputShape[0], m_inputShape[1], m_alpha, 0);
-					} else {
-						LIBRAPID_NOT_IMPLEMENTED
-					}
-				}
-#endif // LIBRAPID_HAS_OPENCL
+					kernels::opencl::transpose<Scalar>(
+					  outBuffer, inBuffer, m_inputShape[0], m_inputShape[1], m_alpha, 0);
+#else
+					LIBRAPID_ERROR(
+					  "LibRapid was not compiled with OpenCL support, so this operation is not "
+					  "supported. Please recompile LibRapid with OpenCL support or switch to the "
+					  "CPU backend.");
+#endif
+				} else if constexpr (isCUDA) {
 #if defined(LIBRAPID_HAS_CUDA)
-				else {
-					if (m_inputShape.ndim() == 2) {
-						int64_t blockSize		= global::cacheLineSize / sizeof(Scalar);
+					if (inplace) {
+						kernels::transposeInplace(out, m_alpha);
+					} else {
 						auto *__restrict outPtr = out.storage().begin();
 						auto *__restrict inPtr	= m_array.storage().begin();
-						detail::cuda::transposeImpl(
+						kernels::cpu::transpose(
 						  outPtr, inPtr, m_inputShape[0], m_inputShape[1], m_alpha, blockSize);
-					} else {
-						LIBRAPID_NOT_IMPLEMENTED
 					}
+#endif
 				}
-#endif // LIBRAPID_HAS_CUDA
 			} else {
-				LIBRAPID_NOT_IMPLEMENTED
+				// General transpose -- evaluate and assign
+				out = eval();
 			}
 		}
 
 		template<typename T>
+		template<typename T_>
 		auto Transpose<T>::eval() const {
-			if constexpr (typetraits::TypeInfo<BaseType>::type ==
-						  detail::LibRapidType::ArrayContainer) {
-				using NonConstArrayType = std::remove_const_t<BaseType>;
+			using NonConstType		= typename std::decay_t<T>;
+			using NonConstArrayType = typename typetraits::TypeInfo<NonConstType>::StorageType;
+			using Type				= typename typetraits::TypeInfo<NonConstType>::Scalar;
+
 				NonConstArrayType res(m_outputShape);
-				applyTo(res);
+				assignTo(res);
 				return res;
 			} else {
 				auto tmp   = m_array.eval();
-				using Type = decltype(tmp);
+				using Type = typename typetraits::TypeInfo<decltype(tmp)>::Scalar;
 				return Transpose<Type>(std::forward<Type>(tmp), m_axes, m_alpha).eval();
 			}
-		};
-
-		template<typename TransposeType>
-		template<typename T, typename Char, size_t N, typename Ctx>
-		void Transpose<TransposeType>::str(const fmt::formatter<T, Char> &format, char bracket,
-										   char separator, const char (&formatString)[N],
-										   Ctx &ctx) const {
-			eval().str(format, bracket, separator, formatString, ctx);
-		}
-	}; // namespace array
-
-	template<typename T, typename ShapeType = MatrixShape>
-		requires(typetraits::IsSizeType<ShapeType>::value)
-	auto transpose(T &&array, const ShapeType &axes = ShapeType()) {
-		// If axes is empty, transpose the array in reverse order
-		ShapeType newAxes = axes;
-		if (axes.size() == 0) {
-			newAxes = ShapeType::zeros(array.ndim());
-			for (size_t i = 0; i < array.ndim(); i++) { newAxes[i] = array.ndim() - i - 1; }
 		}
 
-		return array::Transpose<T>(std::forward<T>(array), newAxes);
-	}
+		/// \brief Create a Transpose functor object
+		/// \tparam T The type of the array to transpose
+		/// \param array The array to transpose
+		/// \param alpha The alpha scaling factor
+		/// \return A Transpose functor object
+		template<typename T>
+		LIBRAPID_NODISCARD auto transpose(T &&array, typename typetraits::TypeInfo<std::decay_t<T>>::Scalar alpha = 1) {
+			using ArrayType = std::decay_t<T>;
+			using ShapeType = typename ArrayType::ShapeType;
 
-	namespace typetraits {
-		template<typename Descriptor, typename TransposeType, typename ScalarType>
-		struct HasCustomEval<detail::Function<Descriptor, detail::Multiply,
-											  array::Transpose<TransposeType>, ScalarType>>
-				: std::true_type {};
+			// Default transpose axes (reverse order)
+			ShapeType axes = ShapeType::zeros(array.ndim());
+			for (int64_t i = 0; i < array.ndim(); ++i) { axes[i] = array.ndim() - 1 - i; }
 
-		template<typename Descriptor, typename ScalarType, typename TransposeType>
-		struct HasCustomEval<detail::Function<Descriptor, detail::Multiply, ScalarType,
-											  array::Transpose<TransposeType>>> : std::true_type {};
-	}; // namespace typetraits
-
-	namespace detail {
-		// If assigning an operation of the form aT * b, where a is a matrix and b is a scalar,
-		// we can replace this with Transpose(a, b) to get better performance
-
-		// aT * b
-		template<typename ShapeType, typename DestinationStorageType, typename Descriptor,
-				 typename TransposeType, typename ScalarType>
-		LIBRAPID_ALWAYS_INLINE void
-		assign(array::ArrayContainer<ShapeType, DestinationStorageType> &destination,
-			   const Function<Descriptor, detail::Multiply, array::Transpose<TransposeType>,
-							  ScalarType> &function) {
-			auto axes	= std::get<0>(function.args()).axes();
-			auto alpha	= std::get<0>(function.args()).alpha();
-			destination = array::Transpose(
-			  std::get<0>(function.args()).array(), axes, alpha * std::get<1>(function.args()));
+			return Transpose<T>(std::forward<T>(array), axes, alpha);
 		}
 
-		template<typename ShapeType, typename DestinationStorageType, typename Descriptor,
-				 typename TransposeType, typename ScalarType>
-		LIBRAPID_ALWAYS_INLINE void
-		assignParallel(array::ArrayContainer<ShapeType, DestinationStorageType> &destination,
-					   const Function<Descriptor, detail::Multiply, array::Transpose<TransposeType>,
-									  ScalarType> &function) {
-			// The assign function runs in parallel if possible by default, so just call that
-			assign(destination, function);
+		/// \brief Create a Transpose functor object with custom axes
+		/// \tparam T The type of the array to transpose
+		/// \param array The array to transpose
+		/// \param axes The transposition axes
+		/// \param alpha The alpha scaling factor
+		/// \return A Transpose functor object
+		template<typename T, typename ShapeType_>
+		LIBRAPID_NODISCARD auto transpose(T &&array, const ShapeType_ &axes, typename typetraits::TypeInfo<std::decay_t<T>>::Scalar alpha = 1) {
+			return Transpose<T>(std::forward<T>(array), axes, alpha);
 		}
 
-		// a * bT
-		template<typename ShapeType, typename DestinationStorageType, typename ScalarType,
-				 typename Descriptor, typename TransposeType>
-		LIBRAPID_ALWAYS_INLINE void
-		assign(array::ArrayContainer<ShapeType, DestinationStorageType> &destination,
-			   const Function<Descriptor, detail::Multiply, ScalarType,
-							  array::Transpose<TransposeType>> &function) {
-			auto axes	= std::get<1>(function.args()).axes();
-			auto alpha	= std::get<1>(function.args()).alpha();
-			destination = array::Transpose(
-			  std::get<1>(function.args()).array(), axes, alpha * std::get<0>(function.args()));
+	} // namespace array
+
+	namespace linalg {
+		/// \brief Transpose an array
+		/// \tparam T The type of the array
+		/// \param array The array to transpose
+		/// \param alpha The alpha scaling factor
+		/// \return A transpose functor object
+		template<typename T>
+		LIBRAPID_NODISCARD auto transpose(T &&array, typename typetraits::TypeInfo<std::decay_t<T>>::Scalar alpha = 1) {
+			return array::transpose(std::forward<T>(array), alpha);
 		}
 
-		template<typename ShapeType, typename DestinationStorageType, typename ScalarType,
-				 typename Descriptor, typename TransposeType>
-		LIBRAPID_ALWAYS_INLINE void
-		assignParallel(array::ArrayContainer<ShapeType, DestinationStorageType> &destination,
-					   const Function<Descriptor, detail::Multiply, ScalarType,
-									  array::Transpose<TransposeType>> &function) {
-			assign(destination, function);
+		/// \brief Transpose an array with custom axes
+		/// \tparam T The type of the array
+		/// \param array The array to transpose
+		/// \param axes The transposition axes
+		/// \param alpha The alpha scaling factor
+		/// \return A transpose functor object
+		template<typename T, typename ShapeType_>
+		LIBRAPID_NODISCARD auto transpose(T &&array, const ShapeType_ &axes, typename typetraits::TypeInfo<std::decay_t<T>>::Scalar alpha = 1) {
+			return array::transpose(std::forward<T>(array), axes, alpha);
 		}
-	} // namespace detail
+
+		/// \brief Transpose an array
+		/// \tparam T The type of the array
+		/// \param array The array to transpose
+		/// \param alpha The alpha scaling factor
+		/// \return A transpose functor object
+		template<typename T>
+		LIBRAPID_NODISCARD auto T(T &&array, typename typetraits::TypeInfo<std::decay_t<T>>::Scalar alpha = 1) {
+			return array::transpose(std::forward<T>(array), alpha);
+		}
+
+		/// \brief Transpose an array with custom axes
+		/// \tparam T The type of the array
+		/// \param array The array to transpose
+		/// \param axes The transposition axes
+		/// \param alpha The alpha scaling factor
+		/// \return A transpose functor object
+		template<typename T, typename ShapeType_>
+		LIBRAPID_NODISCARD auto T(T &&array, const ShapeType_ &axes, typename typetraits::TypeInfo<std::decay_t<T>>::Scalar alpha = 1) {
+			return array::transpose(std::forward<T>(array), axes, alpha);
+		}
+	} // namespace linalg
 } // namespace librapid
-
-// Support FMT printing
-#ifdef FMT_API
-ARRAY_TYPE_FMT_IML(typename T, librapid::array::Transpose<T>)
-LIBRAPID_SIMPLE_IO_NORANGE(typename T, librapid::array::Transpose<T>)
-#endif // FMT_API
 
 #endif // LIBRAPID_ARRAY_TRANSPOSE_HPP
