@@ -30,3 +30,7 @@ make_test(mathUtilities)
 make_test(set)
 
 make_test(sigmoid)
+
+# Test coverage improvements for advanced mathematical modules
+make_test(autodiff)
+make_test(half)
