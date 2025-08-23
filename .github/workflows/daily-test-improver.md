@@ -5,11 +5,12 @@ on:
         # Run daily at 2am UTC, all days except Saturday and Sunday
         - cron: "0 2 * * 1-5"
 
-timeout_minutes: 15
+timeout_minutes: 20
+
+stop-time: +48h # workflow will no longer trigger after 48 hours
 
 permissions:
   contents: write # needed to create branches, files, and pull requests in this repo without a fork
-  models: read
   issues: write # needed to create report issue
   pull-requests: write # needed to create results pull request
   actions: read
@@ -43,51 +44,40 @@ tools:
 steps:
   - name: Checkout repository
     uses: actions/checkout@v3
-  - name: Initialize submodules
-    run: git submodule update --init --recursive
-  - name: Install gcovr
-    run: pip install gcovr
+
   - name: Build and run test to produce coverage report
-    run: |
-      # Create build directory and configure with coverage enabled
-      mkdir -p build
-      cd build
-      cmake .. -DCMAKE_BUILD_TYPE=Debug -DLIBRAPID_BUILD_TESTS=ON -DLIBRAPID_CODE_COV=ON
-      
-      # Build the project
-      make -j$(nproc)
-      
-      # Run tests to generate coverage data
-      ctest --output-on-failure
-      
-      # Generate coverage report
-      make librapid_coverage
-      
-      # Upload coverage report as artifact
-      cd ..
-      find . -name "*.html" -path "*/coverage/*" | head -20 | xargs ls -la
-    env:
-      LIBRAPID_OPENCL: OFF  # Or set to ON if OpenCL is installed
+    uses: ./.github/actions/daily-test-improver/coverage-steps
+    id: coverage-steps
+    continue-on-error: true
 
 ---
 
-# Daily Test Coverage Improve
+# Daily Test Coverage Improver
 
 ## Job Description
 
 Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for the GitHub repository `${{ github.repository }}`. You're really good at all kinds of tasks. You're excellent at everything.
 
-0. Read the markdown corresponding to the workflow file in the repository `${{ github.repository }}` in `.github/workflows/daily-test-improver.md`. If the section already contains actual commands, then go to the next step. If the section "Build and run test to produce coverage report" still contains a placeholder, then:  
-   a. Work how to replace it with the actual commands to build the project and run tests to produce a coverage report and upload it as an artifact. 
-   b. Don't actually make the changes (since you're not allowed to make changes under .github/workflows), but rather create an issue showing the exact changes that are needed to the workflow file. Do this by using a markdown codeblock to copy-and-paste into the file, plus a deep link to GitHub to the range of the file to replace.
-   c. In the issue body mention that the user must (1) make these changes manually and (2) then run "gh aw compile" to compile the workflow file using GitHub Agentic Workflows (https://github.com/githubnext/gh-aw).
-   d. Also instruct them to remove this section from the markdown. 
-   e. Exit the workflow with a message saying that the workflow file needs to be updated.
+0. Check if `.github/actions/daily-test-improver/coverage-steps/action.yml` exists. If it does then continue to step 1. If it doesn't then we need to create it:
+   
+   a. Have a careful think about the CI commands needed to build the project, run tests, produce a coverage report and upload it as an artifact. Do this by carefully reading any existing documentation and CI files in the repository that do similar things, and by looking at any build scripts, project files, dev guides and so on in the repository. 
+
+   b. Create the file `.github/actions/daily-test-improver/coverage-steps/action.yml` containing these steps, ensuring that the action.yml file is valid.
+
+   c. Before running any of the steps, make a pull request for the addition of this file, with title "Updates to complete configuration of ${{ github.workflow }}", explaining that adding these build steps to your repo will make this workflow more reliable and effective.
+   
+   d. Try to run through the steps you worked out manually one by one. If the a step needs updating, then update the pull request you created in step c. Continue through all the steps. If you can't get it to work, then create an issue describing the problem and exit. 
+   
+   e. Exit the workflow with a message saying that the configuration needs to be completed by merging the pull request you created in step c.
 
 1. Analyze the state of test coverage:
-   a. Check the test coverage report generated and other detailed coverage information.
-   b. Check the most recent issue with title "Daily Test Coverage Improvement" (it may have been closed) and see what the status of things was there, including any recommendations.
    
+   a. The repository should be in a state where the steps in `.github/actions/daily-test-improver/coverage-steps/action.yml` have been run and a test coverage report has been generated, perhaps with other detailed coverage information. Find and analyze the coverage report. If necessary look at the steps in `.github/actions/daily-test-improver/coverage-steps/action.yml` to work out where it should be. If you can't find it, then create an issue describing the problem and exit.
+
+   b. Check the most recent issue with title starting with "${{ github.workflow }}" (it may have been closed) and see what the status of things was there. These are your notes from last time you did your work, and may include useful recommendations for future areas to work on.
+
+   c. Check for any open pull requests you created before with title starting with "${{ github.workflow }}. Don't work on adding any tests that overlap with what was done there.
+
 2. Select multiple areas of relatively low coverage to work on that appear tractable for further test additions. Be detailed, looking at files, functions, branches, and lines of code that are not covered by tests. Look for areas where you can add meaningful tests that will improve coverage.
 
 3. For each area identified
@@ -100,7 +90,7 @@ Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for 
    
    d. Do NOT include the coverage report or any generated coverage files in the pull request. Check this very carefully after creating the pull request by looking at the added files and removing them if they shouldn't be there. We've seen before that you have a tendency to add large coverage files that you shouldn't, so be careful here.
 
-   e. Create an issue with title starting with "Daily Test Coverage Improvement", summarizing
+   e. Create an issue with title starting with "${{ github.workflow }}", summarizing
    
    - the problems you found
    - the actions you took
@@ -115,20 +105,18 @@ Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for 
 
 6. Create a file in the root directory of the repo called "workflow-complete.txt" with the text "Workflow completed successfully".
 
-@include shared/no-push-to-main.md
+@include flight-school/shared/no-push-to-main.md
 
-@include shared/tool-refused.md
+@include flight-school/shared/tool-refused.md
 
-@include shared/include-link.md
+@include flight-school/shared/include-link.md
 
-@include shared/job-summary.md
+@include flight-school/shared/job-summary.md
 
-@include shared/xpia.md
+@include flight-school/shared/xpia.md
 
-@include shared/gh-extra-tools.md
-
-@include shared/gh-extra-tools.md
+@include flight-school/shared/gh-extra-tools.md
 
 <!-- You can whitelist tools in the shared/build-tools.md file, and include it here. -->
 <!-- This should be done with care, as tools may  -->
-<!-- include shared/build-tools.md -->
+<!-- include flight-school/shared/build-tools.md -->
