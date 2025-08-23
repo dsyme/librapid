@@ -29,6 +29,33 @@ namespace librapid {
 		return result;                                                                             \
 	}
 
+// Optimized integer SIMD operations using actual vectorization
+#define SIMD_INTEGER_OP_IMPL(OP)                                                                  \
+	using Scalar = typename typetraits::TypeInfo<T>::Scalar;                                      \
+	if constexpr (IS_FLOATING(Scalar)) {                                                          \
+		return xsimd::OP(x);                                                                      \
+	} else if constexpr (std::is_integral_v<Scalar>) {                                            \
+		/* Use vectorized operations for integers where possible */                               \
+		if constexpr (std::is_same_v<Scalar, int32_t> || std::is_same_v<Scalar, uint32_t>) {      \
+			/* 32-bit integers have good SIMD support */                                         \
+			return xsimd::OP(x);                                                                  \
+		} else if constexpr (std::is_same_v<Scalar, int64_t> || std::is_same_v<Scalar, uint64_t>) { \
+			/* 64-bit integers - limited SIMD support, but still better than scalar */          \
+			return xsimd::OP(x);                                                                  \
+		} else {                                                                                  \
+			/* Fall back to element-wise for other integer types */                              \
+			T result;                                                                             \
+			constexpr uint64_t packetWidth = typetraits::TypeInfo<Scalar>::packetWidth;           \
+			for (size_t i = 0; i < packetWidth; ++i) { result.set(i, std::OP(x.get(i))); }        \
+			return result;                                                                        \
+		}                                                                                         \
+	} else {                                                                                      \
+		T result;                                                                                 \
+		constexpr uint64_t packetWidth = typetraits::TypeInfo<Scalar>::packetWidth;               \
+		for (size_t i = 0; i < packetWidth; ++i) { result.set(i, std::OP(x.get(i))); }            \
+		return result;                                                                            \
+	}
+
 	template<typename T>
 		requires(typetraits::SIMD<T>)
 	LIBRAPID_NODISCARD LIBRAPID_ALWAYS_INLINE auto sin(const T &x) {
@@ -122,7 +149,7 @@ namespace librapid {
 	template<typename T>
 		requires(typetraits::SIMD<T>)
 	LIBRAPID_NODISCARD LIBRAPID_ALWAYS_INLINE auto abs(const T &x) {
-		SIMD_OP_IMPL(abs)
+		SIMD_INTEGER_OP_IMPL(abs)
 	}
 
 	template<typename T>
