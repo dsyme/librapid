@@ -2,7 +2,7 @@
 # To update this file, edit the corresponding .md file and run:
 #   gh aw compile
 #
-# Effective stop-time: 2025-08-25 23:24:07
+# Effective stop-time: 2025-08-25 23:36:02
 
 name: "Daily Test Coverage Improver"
 on:
@@ -88,7 +88,7 @@ jobs:
           WORKFLOW_NAME="Daily Test Coverage Improver"
           
           # Check stop-time limit
-          STOP_TIME="2025-08-25 23:24:07"
+          STOP_TIME="2025-08-25 23:36:02"
           echo "Checking stop-time limit: $STOP_TIME"
           
           # Convert stop time to epoch seconds
