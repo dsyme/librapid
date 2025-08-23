@@ -5,7 +5,7 @@ on:
         # Run daily at 2am UTC, all days except Saturday and Sunday
         - cron: "0 2 * * 1-5"
 
-timeout_minutes: 15
+timeout_minutes: 30
 
 stop-time: +48h # workflow will no longer trigger after 48 hours
 
@@ -87,33 +87,43 @@ Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for 
    - Important routines that dominate performance
    - Code that can be vectorized or other standard techniques to improve performance
    - Any other areas that you identify as potential performance bottlenecks
+   - Determine if CPU, memory, I/O or other are the bottlenecks
+
+   You may want to profile existing code and typical inputs to determine bottlenecks.
 
    Ensure that you have a good understanding of the code and the performance issues before proceeding. Don't work on areas that overlap with any open pull requests you identified in step 1.
 
 3. For each area identified
 
-   a. Create a new branch and make changes to improve performance. This could
-      - writing micro-benchmarks
-      - profiling existing code and typical inputs to determine bottlenecks
-      - determining if CPU, memory, I/O or other are the bottlenecks
-      - optimizing algorithms
-      - implementing more efficient data structures. 
-      Ensure that the changes are meaningful and have a measurable impact on performance using the benchmarking as a guide and by running individual benchmarks if necessary and comparing results.
-
-   b. Create a draft pull request with your changes, including a description of the improvements, details of the benchmark runs that show improvement and by how much, made and any relevant context.
+   a. Create a new branch.
    
-   c. Do NOT include performance reports or any tool-generated files in the pull request. Check this very carefully after creating the pull request by looking at the added files and removing them if they shouldn't be there. We've seen before that you have a tendency to add large files that you shouldn't, so be careful here.
+   b. Think about a plan about how to measure and improve performance for individual units of work. This could include
+      - writing and running micro-benchmarks before and after changes
+      - optimizing algorithms
+      - implementing more efficient data structures
+      - refactoring code for better performance 
+      Ensure that the changes are likely to be useful, don't waste time on changes that are unlikely to help.
 
-   d. Create an issue with title starting with "${{ github.workflow }}", summarizing
+   c. Make the changes to improve performance. Ensure the code still works as expected and that any existing relevant tests pass. 
+
+   d. After making the changes, measure their impact on performance by running individual benchmarks and comparing results. Benchmarking should be done in a way that is reliable and reproducible, though beware that because you're running in a virtualised environment wall-clock-time measurements may not be 100% accurate. If the changes do not improve performance, then consider reverting them or trying a different approach.
+
+   e. Create a draft pull request with your changes, including a description of the improvements, details of the benchmark runs that show improvement and by how much, made and any relevant context. Do NOT include performance reports or any tool-generated files in the pull request. Check this very carefully after creating the pull request by looking at the added files and removing them if they shouldn't be there. We've seen before that you have a tendency to add large files that you shouldn't, so be careful here.
+
+   f. Create an issue with title starting with "${{ github.workflow }}", summarizing succinctly but clearly:
    
    - the problems you found
+   - the approach you took to your work, including your todo list
    - the actions you took
-   - the changes achieved
+   - the build and test steps you used
+   - the performance measurements you made and improvements achieved
+   - the changes made
+   - what did and didn't work
    - possible other areas for future improvement
    - include links to any issues you created or commented on, and any pull requests you created.
    - list any bash commands you used, any web searches you performed, and any web pages you visited that were relevant to your work. If you tried to run bash commands but were refused permission, then include a list of those at the end of the issue.
 
-4. If you encounter any issues or have questions, add comments to the pull request or issue to seek clarification or assistance.
+4. If you encounter any unexpected failures or have questions, add comments to the pull request or issue to seek clarification or assistance.
 
 5. If you are unable to improve performance in a particular area, add a comment explaining why and what you tried. If you have any relevant links or resources, include those as well.
 
