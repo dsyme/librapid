@@ -30,3 +30,8 @@ make_test(mathUtilities)
 make_test(set)
 
 make_test(sigmoid)
+
+# Daily Test Coverage Improver - Added tests
+make_test(cacheLineSize)
+make_test(compileTimeMath)
+make_test(fastMath)
