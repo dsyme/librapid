@@ -238,13 +238,79 @@ namespace librapid {
 
 			LIBRAPID_NODISCARD LIBRAPID_ALWAYS_INLINE Scalar sum() const {
 				Scalar sum = Scalar(0);
-				for (uint64_t i = 0; i < dims; ++i) { sum += data[i]; }
+				
+				// Optimized summation with loop unrolling
+				if constexpr (dims <= 4) {
+					// Small vectors: compile-time unrolling
+#pragma unroll
+					for (uint64_t i = 0; i < dims; ++i) { 
+						sum += data[i]; 
+					}
+				} else if constexpr (dims <= 16) {
+					// Medium vectors: partial unrolling
+#pragma unroll 4
+					for (uint64_t i = 0; i < dims; ++i) { 
+						sum += data[i]; 
+					}
+				} else {
+					// Large vectors: 4x manual unrolling with remainder handling
+					constexpr uint64_t unroll_count = dims / 4;
+					constexpr uint64_t remainder = dims % 4;
+					
+					// Unrolled main loop
+					for (uint64_t i = 0; i < unroll_count; ++i) {
+						const uint64_t base = i * 4;
+						sum += data[base] + data[base + 1] + data[base + 2] + data[base + 3];
+					}
+					
+					// Handle remainder
+					if constexpr (remainder > 0) {
+						for (uint64_t i = unroll_count * 4; i < dims; ++i) {
+							sum += data[i];
+						}
+					}
+				}
 				return sum;
 			}
 
 			LIBRAPID_NODISCARD LIBRAPID_ALWAYS_INLINE Scalar sum2() const {
 				Scalar sum = Scalar(0);
-				for (uint64_t i = 0; i < dims; ++i) { sum += data[i] * data[i]; }
+				
+				// Optimized squared sum with loop unrolling and FMA opportunities
+				if constexpr (dims <= 4) {
+					// Small vectors: compile-time unrolling
+#pragma unroll
+					for (uint64_t i = 0; i < dims; ++i) { 
+						sum += data[i] * data[i]; 
+					}
+				} else if constexpr (dims <= 16) {
+					// Medium vectors: partial unrolling
+#pragma unroll 4
+					for (uint64_t i = 0; i < dims; ++i) { 
+						sum += data[i] * data[i]; 
+					}
+				} else {
+					// Large vectors: 4x manual unrolling for better instruction scheduling
+					constexpr uint64_t unroll_count = dims / 4;
+					constexpr uint64_t remainder = dims % 4;
+					
+					// Unrolled main loop - allows compiler to optimize with FMA instructions
+					for (uint64_t i = 0; i < unroll_count; ++i) {
+						const uint64_t base = i * 4;
+						const Scalar v0 = data[base];
+						const Scalar v1 = data[base + 1];
+						const Scalar v2 = data[base + 2];
+						const Scalar v3 = data[base + 3];
+						sum += v0 * v0 + v1 * v1 + v2 * v2 + v3 * v3;
+					}
+					
+					// Handle remainder
+					if constexpr (remainder > 0) {
+						for (uint64_t i = unroll_count * 4; i < dims; ++i) {
+							sum += data[i] * data[i];
+						}
+					}
+				}
 				return sum;
 			}
 

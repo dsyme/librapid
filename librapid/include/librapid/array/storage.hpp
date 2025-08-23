@@ -429,7 +429,42 @@ namespace librapid {
 	Storage<T>::Storage(SizeType size, ConstReference value) :
 			m_begin(detail::safeAllocate<T>(size)), m_size(size), m_ownsData(true) {
 		auto ptr_ = LIBRAPID_ASSUME_ALIGNED(m_begin);
-		for (SizeType i = 0; i < size; ++i) { ptr_[i] = value; }
+		
+		// Optimized fill operations based on data type and size
+		if constexpr (std::is_trivially_copyable_v<T>) {
+			if constexpr (sizeof(T) <= 8 && std::is_arithmetic_v<T>) {
+				// For small arithmetic types, use std::fill which can be vectorized by compiler
+				std::fill(ptr_, ptr_ + size, value);
+			} else {
+				// For larger or complex types, use manual loop with prefetching for large sizes
+				constexpr SizeType PREFETCH_THRESHOLD = 1024;
+				if (size > PREFETCH_THRESHOLD) {
+					// Process in chunks with memory prefetching for better cache performance
+					constexpr SizeType CHUNK_SIZE = 64; // Optimize for cache line
+					for (SizeType i = 0; i < size; i += CHUNK_SIZE) {
+						SizeType chunk_end = std::min(i + CHUNK_SIZE, size);
+						
+						// Prefetch next chunk if available
+						if (chunk_end + CHUNK_SIZE < size) {
+							prefetch<3>(&ptr_[chunk_end + CHUNK_SIZE]);
+						}
+						
+						// Fill current chunk
+						for (SizeType j = i; j < chunk_end; ++j) {
+							ptr_[j] = value;
+						}
+					}
+				} else {
+					// Small arrays - simple loop
+					for (SizeType i = 0; i < size; ++i) { ptr_[i] = value; }
+				}
+			}
+		} else {
+			// Non-trivially copyable types - use placement new
+			for (SizeType i = 0; i < size; ++i) {
+				::new (ptr_ + i) T(value);
+			}
+		}
 	}
 
 	template<typename T>
@@ -692,7 +727,30 @@ namespace librapid {
 
 	template<typename T, size_t... D>
 	FixedStorage<T, D...>::FixedStorage(const Scalar &value) {
-		for (size_t i = 0; i < Size; ++i) { m_data[i] = value; }
+		// Compile-time optimized fill based on size and type
+		if constexpr (std::is_arithmetic_v<T> && sizeof(T) <= 8) {
+			if constexpr (Size <= 32) {
+				// Small arrays: full unrolling for zero overhead
+#pragma unroll
+				for (size_t i = 0; i < Size; ++i) { 
+					m_data[i] = value; 
+				}
+			} else if constexpr (Size <= 128) {
+				// Medium arrays: partial unrolling
+#pragma unroll 4
+				for (size_t i = 0; i < Size; ++i) { 
+					m_data[i] = value; 
+				}
+			} else {
+				// Large fixed arrays: use std::fill for compiler vectorization
+				std::fill(m_data.begin(), m_data.end(), value);
+			}
+		} else {
+			// Non-arithmetic or large types: standard loop
+			for (size_t i = 0; i < Size; ++i) { 
+				m_data[i] = value; 
+			}
+		}
 	}
 
 	template<typename T, size_t... D>

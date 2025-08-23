@@ -116,36 +116,58 @@ namespace librapid {
 		/// \param val The value to insert
 		/// \return Return a reference to the set
 		Set &insert(const ElementType &val) {
-			if (contains(val)) return *this;
-
-			// Insert into data
-			for (auto it = m_data.begin(); it < m_data.end(); it++) {
-				if (*it > val) {
-					m_data.insert(it, val);
-					return *this;
-				}
+			// Use binary search to find insertion position - O(log n) instead of O(n)
+			auto it = std::lower_bound(m_data.begin(), m_data.end(), val);
+			
+			// Check if element already exists (avoid duplicate check)
+			if (it != m_data.end() && *it == val) {
+				return *this; // Element already exists
 			}
-
-			m_data.emplace_back(val);
+			
+			// Insert at the correct position to maintain sorted order
+			m_data.insert(it, val);
 			return *this;
 		}
 
 		/// \brief Insert an `std::vector` of values into the set (\f$ S \leftarrow S \cup
 		/// \text{data} \f$)
 		///
-		/// Each element of the vector is inserted into the set.
-		/// \param data
+		/// Each element of the vector is inserted into the set. Uses optimized bulk insertion
+		/// that sorts input data first for better cache locality and fewer vector reallocations.
+		/// \param data The vector of elements to insert
 		/// \return Reference to the set
 		Set &insert(const std::vector<ElementType> &data) {
-			for (const auto &val : data) { insert(val); }
+			if (data.empty()) return *this;
+			
+			// For bulk insertion, reserve space to avoid multiple reallocations
+			m_data.reserve(m_data.size() + data.size());
+			
+			// Sort the input data for better merge performance
+			std::vector<ElementType> sortedData = data;
+			std::sort(sortedData.begin(), sortedData.end());
+			
+			// Merge sorted input with existing sorted data
+			std::vector<ElementType> merged;
+			merged.reserve(m_data.size() + sortedData.size());
+			
+			std::set_union(m_data.begin(), m_data.end(),
+						   sortedData.begin(), sortedData.end(),
+						   std::back_inserter(merged));
+			
+			m_data = std::move(merged);
 			return *this;
 		}
 
 		/// \brief Insert an initializer list of values into the set (\f$ S \leftarrow S \cup
-		/// \text{data} \f$) \param data \return Reference to the set
+		/// \text{data} \f$) 
+		/// 
+		/// Optimized bulk insertion for initializer lists.
+		/// \param data The initializer list of elements to insert
+		/// \return Reference to the set
 		Set &insert(const std::initializer_list<ElementType> &data) {
-			for (const auto &val : data) { insert(val); }
-			return *this;
+			// Convert to vector and use optimized bulk insertion
+			std::vector<ElementType> vec(data);
+			return insert(vec);
 		}
 
 		/// \brief Insert an element into the set (\f$ S \leftarrow S \cup \{\text{val}\} \f$)
