@@ -39,7 +39,8 @@ tools:
       NotebookEdit:
       WebFetch:
       WebSearch:
-      Bash: [":*"]
+      # Configure bash build commands here, or enabled the agentics/shared/build-tools.md file at the end of this file and edit there
+      #Bash: [":*"]
 
 steps:
   - name: Checkout repository
@@ -129,18 +130,18 @@ Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for 
 
 6. Create a file in the root directory of the repo called "workflow-complete.txt" with the text "Workflow completed successfully".
 
-@include flight-school/shared/no-push-to-main.md
+@include agentics/shared/no-push-to-main.md
 
-@include flight-school/shared/tool-refused.md
+@include agentics/shared/tool-refused.md
 
-@include flight-school/shared/include-link.md
+@include agentics/shared/include-link.md
 
-@include flight-school/shared/job-summary.md
+@include agentics/shared/job-summary.md
 
-@include flight-school/shared/xpia.md
+@include agentics/shared/xpia.md
 
-@include flight-school/shared/gh-extra-tools.md
+@include agentics/shared/gh-extra-tools.md
 
-<!-- You can whitelist tools in the shared/build-tools.md file, and include it here. -->
+<!-- You can whitelist tools in the agentics/shared/build-tools.md file, and include it here. -->
 <!-- This should be done with care, as tools may  -->
-<!-- include flight-school/shared/build-tools.md -->
+<!-- include agentics/shared/build-tools.md -->

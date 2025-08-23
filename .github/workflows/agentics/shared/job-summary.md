@@ -2,6 +2,8 @@
 tools:
   claude:
     allowed:
+      Edit:
+      MultiEdit:
       Write:
       Bash:
       - "echo:*"
@@ -18,7 +20,6 @@ At the end of the workflow, finalize the job summry with a very, very succinct s
   - the exact bash commands you executed
   - the exact web searches you performed
   - the exact MCP function/tool calls you used
-  - if any MCP or other tools were refused, then the exact name of the tool and/or the exact prefix of bash commands needed
 
 If any step fails, then make this really obvious with emoji. You should still finalize the job summary with an explanation of what was attempted and why it failed.
 

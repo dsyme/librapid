@@ -5,7 +5,7 @@ on:
         # Run daily at 2am UTC, all days except Saturday and Sunday
         - cron: "0 2 * * 1-5"
 
-timeout_minutes: 20
+timeout_minutes: 30
 
 stop-time: +48h # workflow will no longer trigger after 48 hours
 
@@ -39,7 +39,8 @@ tools:
       NotebookEdit:
       WebFetch:
       WebSearch:
-      Bash: [":*"]
+      # Configure bash build commands here, or enabled the agentics/shared/build-tools.md file at the end of this file and edit there
+      #Bash: [":*"]
 
 steps:
   - name: Checkout repository
@@ -72,7 +73,7 @@ Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for 
 
 1. Analyze the state of test coverage:
    
-   a. The repository should be in a state where the steps in `.github/actions/daily-test-improver/coverage-steps/action.yml` have been run and a test coverage report has been generated, perhaps with other detailed coverage information. Find and analyze the coverage report. If necessary look at the steps in `.github/actions/daily-test-improver/coverage-steps/action.yml` to work out where it should be. If you can't find it, then create an issue describing the problem and exit.
+   a. The repository should be in a state where the steps in `.github/actions/daily-test-improver/coverage-steps/action.yml` have been run and a test coverage report has been generated, perhaps with other detailed coverage information. Look at the steps in `.github/actions/daily-test-improver/coverage-steps/action.yml` to work out where the coverage report should be, and read it. If you can't find the coverage report, work out why the build or coverage generation failed, then create an issue describing the problem and exit. If you know how to fix the problem, then do so in a pull request first, and then exit the workflow so that the workflow can be re-run once the PR is merged.
 
    b. Check the most recent issue with title starting with "${{ github.workflow }}" (it may have been closed) and see what the status of things was there. These are your notes from last time you did your work, and may include useful recommendations for future areas to work on.
 
@@ -105,18 +106,18 @@ Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for 
 
 6. Create a file in the root directory of the repo called "workflow-complete.txt" with the text "Workflow completed successfully".
 
-@include flight-school/shared/no-push-to-main.md
+@include agentics/shared/no-push-to-main.md
 
-@include flight-school/shared/tool-refused.md
+@include agentics/shared/tool-refused.md
 
-@include flight-school/shared/include-link.md
+@include agentics/shared/include-link.md
 
-@include flight-school/shared/job-summary.md
+@include agentics/shared/job-summary.md
 
-@include flight-school/shared/xpia.md
+@include agentics/shared/xpia.md
 
-@include flight-school/shared/gh-extra-tools.md
+@include agentics/shared/gh-extra-tools.md
 
-<!-- You can whitelist tools in the shared/build-tools.md file, and include it here. -->
+<!-- You can whitelist tools in the agentics/shared/build-tools.md file, and include it here. -->
 <!-- This should be done with care, as tools may  -->
-<!-- include flight-school/shared/build-tools.md -->
+<!-- include agentics/shared/build-tools.md -->
