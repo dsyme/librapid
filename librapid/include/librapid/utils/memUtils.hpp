@@ -1,6 +1,10 @@
 #ifndef LIBRAPID_UTILS_MEMUTILS_HPP
 #define LIBRAPID_UTILS_MEMUTILS_HPP
 
+#if defined(__linux__)
+#	include <sys/mman.h>
+#endif
+
 namespace librapid {
 	/// Cast the bits of one value directly into another type -- no conversion is performed
 	/// \tparam To The type to cast to
@@ -14,9 +18,9 @@ namespace librapid {
 		  "Types have different sizes, and cannot be cast bit-for-bit between each other");
 
 #if defined(__CUDACC__)
-		To toOjb; // assumes default-init
-		::std::memcpy(::std::memcpy::addressof(toOjb), ::std::memcpy::addressof(val), sizeof(To));
-		return _To_obj;
+		To toObj; // assumes default-init
+		::std::memcpy(::std::addressof(toObj), ::std::addressof(val), sizeof(To));
+		return toObj;
 #elif defined(LIBRAPID_MSVC)
 		// MSVC doesn't support std::bit_cast until C++20
 		return *(To *)(&val);
@@ -86,7 +90,13 @@ namespace librapid {
 	/// \return The sign bit of the value
 	template<typename T>
 	LIBRAPID_NODISCARD LIBRAPID_ALWAYS_INLINE bool signBit(const T &val) noexcept {
-		return signBit((double)val);
+		if constexpr (std::is_floating_point_v<T>) {
+			return std::signbit(val);
+		} else if constexpr (std::is_signed_v<T>) {
+			return val < T(0);
+		} else {
+			return false; // unsigned types are never negative
+		}
 	}
 
 	/// Extract the sign bit from a value
@@ -133,6 +143,43 @@ namespace librapid {
 	template<typename A, typename B>
 	void memcpy(A *dest, const B *src, size_t bytes) {
 		std::memcpy((void *)dest, (void *)src, bytes);
+	}
+
+	/// \brief Prefetch memory into cache for faster access
+	/// \param addr Memory address to prefetch
+	template<int locality = 3>
+	LIBRAPID_ALWAYS_INLINE void prefetch(const void *addr) noexcept {
+		static_assert(locality >= 0 && locality <= 3, "Locality must be between 0 and 3");
+#if defined(__GNUC__) || defined(__clang__)
+		__builtin_prefetch(addr, 0, locality);
+#else
+		(void)addr;
+#endif
+	}
+
+	/// \brief Prefetch memory for writing
+	/// \param addr Memory address to prefetch
+	template<int locality = 3>
+	LIBRAPID_ALWAYS_INLINE void prefetchWrite(void *addr) noexcept {
+		static_assert(locality >= 0 && locality <= 3, "Locality must be between 0 and 3");
+#if defined(__GNUC__) || defined(__clang__)
+		__builtin_prefetch(addr, 1, locality);
+#else
+		(void)addr;
+#endif
+	}
+
+	/// \brief Hint to the CPU that memory will not be accessed again soon
+	/// \param addr Memory address
+	/// \param len Length of memory region
+	LIBRAPID_ALWAYS_INLINE void memoryHintNoReuse(const void *addr, size_t len) noexcept {
+#if defined(__linux__) && defined(POSIX_MADV_DONTNEED)
+		(void)posix_madvise(const_cast<void*>(addr), len, POSIX_MADV_DONTNEED);
+#elif defined(_WIN32)
+		(void)addr; (void)len;
+#else
+		(void)addr; (void)len;
+#endif
 	}
 } // namespace librapid
 
