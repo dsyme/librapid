@@ -694,30 +694,30 @@ jobs:
       - name: Upload Coverage Reports
         uses: codecov/codecov-action@v3
 
-  trigger-docs:
-    name: Trigger Documentation Build
-    needs: [ compile, build-docs, quodona, code-coverage ]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    steps:
-      - name: Checkout LibRapid
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
+  # trigger-docs:
+  #   name: Trigger Documentation Build
+  #   needs: [ compile, build-docs, quodona, code-coverage ]
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name == 'push'
+  #   steps:
+  #     - name: Checkout LibRapid
+  #       uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
 
-      - name: Trigger RTDs build
-        if: github.event_name != 'pull_request'
-        uses: dfm/rtds-action@v1
-        with:
-          webhook_url: ${{ secrets.RTDS_WEBHOOK_URL }}
-          webhook_token: ${{ secrets.RTDS_WEBHOOK_TOKEN }}
-          commit_ref: ${{ github.ref }}
+  #     - name: Trigger RTDs build
+  #       if: github.event_name != 'pull_request'
+  #       uses: dfm/rtds-action@v1
+  #       with:
+  #         webhook_url: ${{ secrets.RTDS_WEBHOOK_URL }}
+  #         webhook_token: ${{ secrets.RTDS_WEBHOOK_TOKEN }}
+  #         commit_ref: ${{ github.ref }}
 
-  success:
-    name: Success
-    needs: trigger-docs
-    runs-on: ubuntu-latest
-    steps:
-      - name: Print Success
-        run: |
-          echo "Success!"
+  # success:
+  #   name: Success
+  #   needs: trigger-docs
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Print Success
+  #       run: |
+  #         echo "Success!"
