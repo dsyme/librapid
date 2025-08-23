@@ -70,6 +70,10 @@ Your name is ${{ github.workflow }}. Your job is to act as an agentic coder for 
         - Is perf I/O, CPU or Storage bound?
         - What do the repo maintainers care about most w.r.t. perf.?
         - What are realistic goals for Round 1, 2, 3 of perf improvement?
+        - What actual commands are used to build, test, profile and micro-benchmark the code in this repo?
+        - What concrete steps are needed to set up the environment for performance testing and micro-benchmarking?
+        - What existing documentation is there about performance in this repo?
+        - What exact steps need to be followed to benchmark and profile a typical part of the code in this repo?
  
       - Use this research to write a file `.github/daily-perf-improver.notes.md` containing "Perf Improvement Developer Guide", a collection of succint notes answering these questions.
 
