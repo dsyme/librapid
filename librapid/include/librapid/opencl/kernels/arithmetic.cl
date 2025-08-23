@@ -1,20 +1,26 @@
 #define ARITHMETIC_KERNEL(NAME, OP, DTYPE)                                                         \
     __kernel void NAME##Arrays_##DTYPE(                                                            \
-      __global DTYPE *dst, __global const DTYPE *lhs, __global const DTYPE *rhs) {                 \
+      __global DTYPE *dst, __global const DTYPE *lhs, __global const DTYPE *rhs, int size) {      \
         int gid  = get_global_id(0);                                                               \
-        dst[gid] = lhs[gid] OP rhs[gid];                                                           \
+        if (gid < size) {                                                                          \
+            dst[gid] = lhs[gid] OP rhs[gid];                                                       \
+        }                                                                                          \
     }                                                                                              \
                                                                                                    \
     __kernel void NAME##ArraysScalarRhs_##DTYPE(                                                   \
-      __global DTYPE *dst, __global const DTYPE *lhs, DTYPE rhs) {                                 \
+      __global DTYPE *dst, __global const DTYPE *lhs, DTYPE rhs, int size) {                      \
         int gid  = get_global_id(0);                                                               \
-        dst[gid] = lhs[gid] OP rhs;                                                                \
+        if (gid < size) {                                                                          \
+            dst[gid] = lhs[gid] OP rhs;                                                            \
+        }                                                                                          \
     }                                                                                              \
                                                                                                    \
     __kernel void NAME##ArraysScalarLhs_##DTYPE(                                                   \
-      __global DTYPE *dst, DTYPE lhs, __global const DTYPE *rhs) {                                 \
+      __global DTYPE *dst, DTYPE lhs, __global const DTYPE *rhs, int size) {                      \
         int gid  = get_global_id(0);                                                               \
-        dst[gid] = lhs OP rhs[gid];                                                                \
+        if (gid < size) {                                                                          \
+            dst[gid] = lhs OP rhs[gid];                                                            \
+        }                                                                                          \
     }
 
 #define ARITHMETIC_OP_IMPL(NAME, OP)                                                               \
@@ -33,6 +39,32 @@ ARITHMETIC_OP_IMPL(add, +)
 ARITHMETIC_OP_IMPL(sub, -)
 ARITHMETIC_OP_IMPL(mul, *)
 ARITHMETIC_OP_IMPL(div, /)
+
+// Vectorized versions for better memory coalescing on modern GPUs
+#define VECTORIZED_ARITHMETIC_KERNEL(NAME, OP, DTYPE, VTYPE)                                      \
+    __kernel void NAME##ArraysVectorized_##DTYPE(                                                 \
+      __global DTYPE *dst, __global const DTYPE *lhs, __global const DTYPE *rhs, int size) {     \
+        int gid = get_global_id(0) * 4;                                                           \
+        if (gid + 3 < size) {                                                                     \
+            VTYPE lhs_vec = vload4(get_global_id(0), lhs);                                        \
+            VTYPE rhs_vec = vload4(get_global_id(0), rhs);                                        \
+            VTYPE result = lhs_vec OP rhs_vec;                                                     \
+            vstore4(result, get_global_id(0), dst);                                               \
+        } else if (gid < size) {                                                                  \
+            for (int i = 0; i < 4 && gid + i < size; i++) {                                      \
+                dst[gid + i] = lhs[gid + i] OP rhs[gid + i];                                      \
+            }                                                                                      \
+        }                                                                                          \
+    }
+
+#define VECTORIZED_OP_IMPL(NAME, OP)                                                              \
+    VECTORIZED_ARITHMETIC_KERNEL(NAME, OP, float, float4)                                         \
+    VECTORIZED_ARITHMETIC_KERNEL(NAME, OP, int32_t, int4)
+
+VECTORIZED_OP_IMPL(add, +)
+VECTORIZED_OP_IMPL(sub, -)
+VECTORIZED_OP_IMPL(mul, *)
+VECTORIZED_OP_IMPL(div, /)
 
 ARITHMETIC_OP_IMPL(lessThan, <)
 ARITHMETIC_OP_IMPL(lessThanEqual, <=)

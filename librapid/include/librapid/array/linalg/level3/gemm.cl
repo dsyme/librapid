@@ -33,7 +33,7 @@
                                ? (transA ? A[tiledIndex + lda * iny] : A[iny * lda + tiledIndex])  \
                                : 0.0f;                                                             \
             Bsub[iby][ibx] = (tiledIndex < K && inx < N)                                           \
-                               ? (transB ? B[tiledIndex + ldb * inx] : B[iny * ldb + tiledIndex])  \
+                               ? (transB ? B[tiledIndex + ldb * inx] : B[inx * ldb + tiledIndex])  \
                                : 0.0f;                                                             \
                                                                                                    \
             barrier(CLK_LOCAL_MEM_FENCE);                                                          \
