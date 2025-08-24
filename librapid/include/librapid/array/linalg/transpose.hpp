@@ -612,8 +612,32 @@ namespace librapid {
 
 		template<typename T>
 		auto Transpose<T>::scalar(int64_t index) const -> auto {
-			// TODO: This is a heinously inefficient way of doing this. Fix it.
-			return eval().scalar(index);
+			// Convert flat index to multi-dimensional coordinates in output space
+			ShapeType outputCoords = ShapeType::zeros(m_outputShape.ndim());
+			int64_t remainingIndex = index;
+			
+			// Convert flat index to coordinates using row-major order
+			for (int64_t i = m_outputShape.ndim() - 1; i >= 0; --i) {
+				outputCoords[i] = remainingIndex % m_outputShape[i];
+				remainingIndex /= m_outputShape[i];
+			}
+			
+			// Apply inverse transpose mapping to get original coordinates
+			ShapeType originalCoords = ShapeType::zeros(m_inputShape.ndim());
+			for (size_t i = 0; i < m_inputShape.ndim(); ++i) {
+				originalCoords[m_axes[i]] = outputCoords[i];
+			}
+			
+			// Convert original coordinates back to flat index
+			int64_t originalIndex = 0;
+			int64_t stride = 1;
+			for (int64_t i = m_inputShape.ndim() - 1; i >= 0; --i) {
+				originalIndex += originalCoords[i] * stride;
+				stride *= m_inputShape[i];
+			}
+			
+			// Return the scaled scalar value from the original array
+			return m_array.scalar(originalIndex) * m_alpha;
 		}
 
 		template<typename T>
