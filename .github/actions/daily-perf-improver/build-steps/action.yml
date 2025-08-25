@@ -1,0 +1,204 @@
+name: 'Daily Perf Improver Build Steps'
+description: 'Build and setup environment for LibRapid performance improvement work'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install System Dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y \
+          cmake \
+          ninja-build \
+          gcc-14 \
+          g++-14 \
+          libopenblas-dev \
+          libfftw3-dev \
+          libmpfr-dev \
+          libgmp-dev \
+          perf-tools-unstable \
+          valgrind \
+          gprof \
+          google-perftools \
+          linux-tools-common \
+          linux-tools-generic
+      shell: bash
+
+    - name: Set Performance CPU Governor
+      run: |
+        sudo cpupower frequency-set --governor performance || echo "Could not set CPU governor (running in container)"
+      shell: bash
+
+    - name: Create Build Directories
+      run: |
+        mkdir -p build-release
+        mkdir -p build-debug
+        mkdir -p build-profiling
+      shell: bash
+
+    - name: Configure Release Build (Optimized)
+      run: |
+        cd build-release
+        cmake .. \
+          -GNinja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_CXX_STANDARD=23 \
+          -DCMAKE_C_COMPILER=gcc-14 \
+          -DCMAKE_CXX_COMPILER=g++-14 \
+          -DCMAKE_CXX_FLAGS="-O3 -march=native -ffast-math -DNDEBUG" \
+          -DLIBRAPID_BUILD_EXAMPLES=OFF \
+          -DLIBRAPID_BUILD_TESTS=ON \
+          -DLIBRAPID_USE_BLAS=ON \
+          -DLIBRAPID_GET_BLAS=OFF \
+          -DLIBRAPID_USE_MULTIPREC=ON \
+          -DLIBRAPID_USE_OPENCL=OFF \
+          -DLIBRAPID_USE_CUDA=OFF \
+          -DLIBRAPID_OPTIMISE_SMALL_ARRAYS=ON
+      shell: bash
+
+    - name: Configure Debug Build (Profiling)
+      run: |
+        cd build-debug
+        cmake .. \
+          -GNinja \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_CXX_STANDARD=23 \
+          -DCMAKE_C_COMPILER=gcc-14 \
+          -DCMAKE_CXX_COMPILER=g++-14 \
+          -DCMAKE_CXX_FLAGS="-g -O0 -fprofile-arcs -ftest-coverage" \
+          -DLIBRAPID_BUILD_EXAMPLES=OFF \
+          -DLIBRAPID_BUILD_TESTS=ON \
+          -DLIBRAPID_USE_BLAS=ON \
+          -DLIBRAPID_GET_BLAS=OFF \
+          -DLIBRAPID_USE_MULTIPREC=ON \
+          -DLIBRAPID_USE_OPENCL=OFF \
+          -DLIBRAPID_USE_CUDA=OFF \
+          -DLIBRAPID_CODE_COV=ON
+      shell: bash
+
+    - name: Configure Profiling Build
+      run: |
+        cd build-profiling
+        cmake .. \
+          -GNinja \
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+          -DCMAKE_CXX_STANDARD=23 \
+          -DCMAKE_C_COMPILER=gcc-14 \
+          -DCMAKE_CXX_COMPILER=g++-14 \
+          -DCMAKE_CXX_FLAGS="-O2 -g -fno-omit-frame-pointer -fprofile-instr-generate" \
+          -DLIBRAPID_BUILD_EXAMPLES=ON \
+          -DLIBRAPID_BUILD_TESTS=ON \
+          -DLIBRAPID_USE_BLAS=ON \
+          -DLIBRAPID_GET_BLAS=OFF \
+          -DLIBRAPID_USE_MULTIPREC=ON \
+          -DLIBRAPID_USE_OPENCL=OFF \
+          -DLIBRAPID_USE_CUDA=OFF
+      shell: bash
+
+    - name: Build Release Version
+      run: |
+        cd build-release
+        ninja -j$(nproc)
+      shell: bash
+
+    - name: Build Debug Version  
+      run: |
+        cd build-debug
+        ninja -j$(nproc)
+      shell: bash
+
+    - name: Build Profiling Version
+      run: |
+        cd build-profiling
+        ninja -j$(nproc)
+      shell: bash
+
+    - name: Run Tests to Validate Builds
+      run: |
+        cd build-release
+        ctest --output-on-failure
+      shell: bash
+
+    - name: Install Google Benchmark
+      run: |
+        git clone https://github.com/google/benchmark.git
+        cd benchmark
+        cmake -E make_directory "build"
+        cmake -E chdir "build" cmake -DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUILD_TYPE=Release ../
+        cmake --build "build" --config Release
+        sudo cmake --build "build" --config Release --target install
+      shell: bash
+
+    - name: Create Benchmark Infrastructure
+      run: |
+        mkdir -p benchmarks
+        cat > benchmarks/CMakeLists.txt << 'EOF'
+        cmake_minimum_required(VERSION 3.16)
+        project(librapid_benchmarks)
+
+        find_package(benchmark REQUIRED)
+        find_package(PkgConfig REQUIRED)
+
+        add_executable(bench_basic basic_benchmark.cpp)
+        target_link_libraries(bench_basic benchmark::benchmark)
+        target_include_directories(bench_basic PRIVATE ../librapid/include)
+        target_compile_features(bench_basic PRIVATE cxx_std_23)
+        target_compile_options(bench_basic PRIVATE -O3 -march=native)
+        EOF
+        
+        cat > benchmarks/basic_benchmark.cpp << 'EOF'
+        #include <benchmark/benchmark.h>
+        #include <vector>
+        #include <librapid>
+
+        // Basic array operations benchmark
+        static void BM_ArrayCreation(benchmark::State& state) {
+          for (auto _ : state) {
+            auto arr = librapid::Array<float>({1000, 1000});
+            benchmark::DoNotOptimize(arr);
+          }
+        }
+        BENCHMARK(BM_ArrayCreation);
+
+        // Array multiplication benchmark
+        static void BM_ArrayMultiplication(benchmark::State& state) {
+          auto a = librapid::Array<float>({1000, 1000});
+          auto b = librapid::Array<float>({1000, 1000});
+          a.fill(1.5f);
+          b.fill(2.5f);
+          
+          for (auto _ : state) {
+            auto result = a * b;
+            benchmark::DoNotOptimize(result);
+          }
+        }
+        BENCHMARK(BM_ArrayMultiplication);
+
+        BENCHMARK_MAIN();
+        EOF
+      shell: bash
+
+    - name: Build Benchmark Suite
+      run: |
+        cd benchmarks
+        cmake -E make_directory "build"
+        cmake -E chdir "build" cmake -DCMAKE_BUILD_TYPE=Release ../
+        cmake --build "build" --config Release
+      shell: bash
+
+    - name: Summary
+      run: |
+        echo "=== Daily Perf Improver Build Setup Complete ==="
+        echo "Available build directories:"
+        echo "  - build-release/     : Optimized builds for benchmarking"  
+        echo "  - build-debug/       : Debug builds with coverage"
+        echo "  - build-profiling/   : Profile-enabled builds"
+        echo ""
+        echo "Available tools:"
+        echo "  - benchmarks/build/bench_basic : Basic benchmark suite"
+        echo "  - perf                         : CPU profiler"
+        echo "  - valgrind                     : Memory profiler" 
+        echo "  - gprof                        : Call graph profiler"
+        echo ""
+        echo "Performance environment ready for optimization work."
+      shell: bash
